@@ -1,8 +1,8 @@
 from trezor import wire
 from trezor.messages import MessageType
 
-from apps.common import HARDENED
+#from apps.common import HARDENED
 
 def boot():
-    ns = [["ed25519", HARDENED | 44, HARDENED | 1729]]
+    #ns = [["secp256k1", HARDENED | 44, HARDENED | 128]]
     wire.add(MessageType.BeamDisplayMessage, __name__, 'display_message')

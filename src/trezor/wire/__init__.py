@@ -48,6 +48,8 @@ class Context:
         Reply with `msg` and wait for one of `types`. See `self.write()` and
         `self.read()`.
         """
+        print("Call:")
+        print(msg)
         await self.write(msg)
         del msg
         return await self.read(types)
@@ -69,6 +71,7 @@ class Context:
 
         # if we got a message with unexpected type, raise the reader via
         # `UnexpectedMessageError` and let the session handler deal with it
+        print(reader.type)
         if reader.type not in types:
             raise UnexpectedMessageError(reader)
 
@@ -80,6 +83,8 @@ class Context:
         """
         Write a protobuf message to this wire context.
         """
+        print("Write:")
+        print(msg)
         writer = self.getwriter()
 
         if __debug__:
@@ -133,6 +138,10 @@ async def session_handler(iface, sid):
 
             m = utils.unimport_begin()
             w = handler(ctx, reader, *args)
+            print("Received a new message:")
+            print(handler)
+            print(args)
+            print("---")
             try:
                 workflow.onstart(w)
                 await w
@@ -161,6 +170,8 @@ async def protobuf_workflow(ctx, reader, handler, *args):
     from trezor.messages.Failure import Failure
 
     req = await protobuf.load_message(reader, messages.get_type(reader.type))
+    print("Protobuf workflow:")
+    print(req)
     try:
         res = await handler(ctx, req, *args)
     except UnexpectedMessageError:
