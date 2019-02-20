@@ -1,4 +1,5 @@
 from trezor import ui
+from trezor.crypto import beam
 from trezor.messages import ButtonRequestType
 from trezor.messages.BeamConfirmResponseMessage import BeamConfirmResponseMessage
 from trezor.ui.text import Text
@@ -21,7 +22,7 @@ async def display_message(ctx, msg):
                 #break
             else:
                 print("Processing..")
-    text_to_send_back = msg.text + ' from device!'
+    text_to_send_back = msg.text + ' This is a message from device! Received code:' + str(beam.hello_crypto_world())
     print("Bye!")
     res = BeamConfirmResponseMessage(text=text_to_send_back, response=True)
     print(res)
