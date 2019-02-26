@@ -8,6 +8,9 @@ from trezor.ui.text import Text
 from apps.common.confirm import *
 from apps.common.layout import *
 
+#TEST
+from apps.common import storage
+
 async def display_message(ctx, msg):
     text = Text(msg.text, ui.ICON_SEND, icon_color=ui.GREEN)
     text.bold("BEAM")
@@ -22,7 +25,11 @@ async def display_message(ctx, msg):
                 #break
             else:
                 print("Processing..")
-    text_to_send_back = msg.text + ' This is a message from device! Received code:' + str(beam.hello_crypto_world())
+    #text_to_send_back = msg.text + ' This is a message from device! Received code:' + str(beam.hello_crypto_world())
+    mnemonic = storage.get_mnemonic()
+    seed = beam.phrase_to_seed(mnemonic)
+    seed_str = ''.join('{:02x}'.format(x) for x in seed)
+    text_to_send_back = 'Mnemonic: ' + mnemonic + '\nSeed: ' + seed_str
     print("Bye!")
     res = BeamConfirmResponseMessage(text=text_to_send_back, response=True)
     print(res)
