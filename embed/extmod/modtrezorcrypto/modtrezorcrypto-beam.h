@@ -223,7 +223,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
 
     //TODO:move out of here
     //secp256k1_gej pk;
-    //set_mul(&pk, CONTEXT.generator.G_pts, scalar_sk.d, 8);
+    //generator_mul_scalar(&pk, CONTEXT.generator.G_pts, &scalar_sk);
     //////
 
     secp256k1_gej nonce;
@@ -231,7 +231,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
     init_context();
     //void signature_sign(const uint8_t *msg32, const scalar_t *sk, const secp256k1_gej *generator_pts, secp256k1_gej *out_nonce_pub, scalar_t *out_k)
     signature_sign((const uint8_t*)msg32.buf, &scalar_sk, CONTEXT.generator.G_pts, &nonce, &out_scalar_k);
-    printf(" Internal! ---- out_nonce_pub  %d\n", nonce.x.n[0]);
+    printf(" Internal! ---- out_nonce_pub  %d\n", (int)nonce.x.n[0]);
     // Export scalar
     // Write data into raw pointer instead of scalar type
     scalar_get_b32((uint8_t*)out_k.buf, &out_scalar_k);
@@ -286,7 +286,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
     scalar_import_nnz(&scalar_sk, (const uint8_t*)sk.buf);
     // Get pk
     secp256k1_gej pk;
-    set_mul(&pk, CONTEXT.generator.G_pts, scalar_sk.d, 8);
+    generator_mul_scalar(&pk, CONTEXT.generator.G_pts, &scalar_sk);
 
     int is_valid = signature_is_valid((const uint8_t*)msg32.buf, &nonce_pub, &scalar_k, &pk, CONTEXT.generator.G_pts);
 
