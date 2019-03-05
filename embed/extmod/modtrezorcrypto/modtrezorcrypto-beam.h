@@ -194,7 +194,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_secret_key_to_public_key(mp_obj_t secret_k
     init_context();
     //void sk_to_pk(scalar_t *sk, const secp256k1_gej *generator_pts, uint8_t *out32);
     sk_to_pk(&scalar_sk, get_context()->generator.G_pts, (uint8_t*)pk.buf);
-
+    free_context();
     return mp_const_none;
 }
 
@@ -245,7 +245,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
     memcpy(out_nonce_pub_x.buf, out_k_point_t.x, 32);
     //TODO: memset() instead?
     *((uint8_t*)out_nonce_pub_y.buf) = out_k_point_t.y;
-
+    free_context();
     return mp_const_none;
 }
 
