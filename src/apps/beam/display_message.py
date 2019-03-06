@@ -1,3 +1,5 @@
+import apps.common.coins as coins
+
 from trezor import ui
 from trezor.crypto import beam
 from trezor.messages import ButtonRequestType
@@ -8,26 +10,29 @@ from trezor.ui.text import Text
 from apps.common.confirm import *
 from apps.common.layout import *
 
+from apps.beam.helpers import (
+    bin_to_str,
+)
+from apps.beam.layout import *
+
 #TEST
 from apps.common import storage
 
-def bin_to_str(binary_data):
-    return ''.join('{:02x}'.format(x) for x in binary_data)
 
 async def display_message(ctx, msg):
     text = Text(msg.text, ui.ICON_SEND, icon_color=ui.GREEN)
     text.bold("BEAM")
     print("Received new message call:")
     print(msg.show_display)
-    if msg.show_display:
-        while True:
-            #if await show_qr(ctx, text):
-            #if await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput):
-            if await show_address(ctx, 'some_addr', 'description!!!!'):
-                print('BREAK!')
-                #break
-            else:
-                print("Processing..")
+    #if msg.show_display:
+    #    while True:
+    #        #if await show_qr(ctx, text):
+    #        #if await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput):
+    #        if await show_address(ctx, 'some_addr', 'description!!!!'):
+    #            print('BREAK!')
+    #            #break
+    #        else:
+    #            print("Processing..")
 
     #print(dir(beam))
     ### TEST BEAM hello_crypto_world
@@ -158,14 +163,33 @@ async def display_message(ctx, msg):
     sign_nonce_pub_x = bytearray(32)
     sign_nonce_pub_y = bytearray(1)
     sign_k = bytearray(32)
+    print('Message32: {}'.format(bin_to_str(msg32)))
+    await require_confirm_sign_message(ctx, msg32)
     beam.signature_sign(msg32, res_sk, sign_nonce_pub_x, sign_nonce_pub_y, sign_k)
     # Is signature valid
     is_valid = beam.is_valid_signature(msg32, sign_nonce_pub_x, sign_nonce_pub_y, sign_k, res_sk);
+    is_valid_msg = 'Sign_x: {}; Sign_y: {}; Sign_k: {}; Is valid: {}'.format(bin_to_str(sign_nonce_pub_x),
+                                                                             bin_to_str(sign_nonce_pub_y),
+                                                                             bin_to_str(sign_k),
+                                                                             is_valid)
+    await require_validate_sign_message(ctx, is_valid_msg)
     text_to_send_back = 'Is valid signature? : {}'.format(is_valid)
     # Modify to check the signature is no longer valid
     msg32[0] = msg32[0] + 1
     is_valid = beam.is_valid_signature(msg32, sign_nonce_pub_x, sign_nonce_pub_y, sign_k, res_sk);
     text_to_send_back += '\n(xfail) Is valid signature? : {}'.format(is_valid)
+
+    await beam_confirm_tx(ctx, 123456, 228)
+
+    if msg.show_display:
+        while True:
+            #if await show_qr(ctx, text):
+            #if await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput):
+            if await show_address(ctx, text_to_send_back, 'Hello from BEAM!'):
+                print('BREAK!')
+                break
+            else:
+                print("Processing..")
 
     print("Bye!")
     res = BeamConfirmResponseMessage(text=text_to_send_back, response=True)
@@ -173,3 +197,4 @@ async def display_message(ctx, msg):
     print(res.text)
     print(res.response)
     return res
+

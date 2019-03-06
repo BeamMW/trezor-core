@@ -185,3 +185,5 @@ EosTxActionAck = 604
 EosSignedTx = 605
 BeamDisplayMessage = 700
 BeamConfirmResponseMessage = 701
+BeamSignMessage = 702
+BeamSignedMessage = 703

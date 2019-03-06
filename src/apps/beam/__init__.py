@@ -6,3 +6,4 @@ from trezor.messages import MessageType
 def boot():
     #ns = [["secp256k1", HARDENED | 44, HARDENED | 128]]
     wire.add(MessageType.BeamDisplayMessage, __name__, 'display_message')
+    wire.add(MessageType.BeamSignMessage, __name__, 'sign_message')
