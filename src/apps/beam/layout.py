@@ -1,3 +1,5 @@
+import apps.common.coins as coins
+
 from trezor import ui
 from trezor.ui.text import Text
 
@@ -6,8 +8,8 @@ from apps.common.layout import *
 from apps.common.signverify import split_message
 from apps.wallet.sign_tx.layout import confirm_total
 
-async def require_confirm_sign_message(ctx, message, split_message=True):
-    await beam_confirm_message(ctx, 'Sign BEAM message', message, split_message)
+async def require_confirm_sign_message(ctx, message, use_split_message=True):
+    await beam_confirm_message(ctx, 'Sign BEAM message', message, use_split_message)
     return True
 
 async def require_validate_sign_message(ctx, message):
@@ -18,8 +20,8 @@ async def require_validate_sign_message(ctx, message):
     #await beam_confirm_message(ctx, 'Validate BEAM signature', message)
     return True
 
-async def beam_confirm_message(ctx, info_message, message, split_message=True):
-    if split_message:
+async def beam_confirm_message(ctx, info_message, message, use_split_message=True):
+    if use_split_message:
         message = split_message(message)
 
     text = Text(info_message, new_lines=False)

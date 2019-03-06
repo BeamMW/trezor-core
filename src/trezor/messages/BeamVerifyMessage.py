@@ -5,17 +5,20 @@ import protobuf as p
 from .BeamSignature import BeamSignature
 
 
-class BeamSignedMessage(p.MessageType):
-    MESSAGE_WIRE_TYPE = 703
+class BeamVerifyMessage(p.MessageType):
+    MESSAGE_WIRE_TYPE = 704
 
     def __init__(
         self,
         signature: BeamSignature = None,
+        message: bytes = None,
     ) -> None:
         self.signature = signature
+        self.message = message
 
     @classmethod
     def get_fields(cls):
         return {
             1: ('signature', BeamSignature, 0),
+            2: ('message', p.BytesType, 0),
         }

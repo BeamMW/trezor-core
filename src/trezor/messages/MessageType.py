@@ -187,3 +187,4 @@ BeamDisplayMessage = 700
 BeamConfirmResponseMessage = 701
 BeamSignMessage = 702
 BeamSignedMessage = 703
+BeamVerifyMessage = 704

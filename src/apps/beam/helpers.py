@@ -1,6 +1,9 @@
 from trezor.crypto import beam
+from trezor.messages.BeamSignature import BeamSignature
 
 from apps.common import storage
+
+from apps.beam.layout import *
 
 
 def bin_to_str(binary_data):
@@ -29,6 +32,13 @@ def get_beam_sk():
 def get_beam_pk():
     # Secret key to public key
     public_key = bytearray(32)
-    beam.secret_key_to_public_key(res_sk, public_key)
+    sk = get_beam_sk()
+    beam.secret_key_to_public_key(sk, public_key)
 
     return public_key
+
+def is_valid_beam_message(signature, message):
+    sk = get_beam_sk()
+    is_valid = beam.is_valid_signature(message, signature.nonce_pub_x, signature.nonce_pub_y, signature.sign_k, sk)
+
+    return is_valid

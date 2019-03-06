@@ -1,5 +1,3 @@
-import apps.common.coins as coins
-
 from trezor import ui
 from trezor.crypto import beam
 from trezor.messages import ButtonRequestType

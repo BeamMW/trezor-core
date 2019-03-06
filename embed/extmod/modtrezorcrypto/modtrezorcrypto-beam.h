@@ -286,9 +286,12 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
     scalar_import_nnz(&scalar_sk, (const uint8_t*)sk.buf);
     // Get pk
     secp256k1_gej pk;
+    //TODO<Kirill>: call it once on device initialization
+    init_context();
     generator_mul_scalar(&pk, get_context()->generator.G_pts, &scalar_sk);
 
     int is_valid = signature_is_valid((const uint8_t*)msg32.buf, &nonce_pub, &scalar_k, &pk, get_context()->generator.G_pts);
+    free_context();
 
     return mp_obj_new_int(is_valid);
 }
