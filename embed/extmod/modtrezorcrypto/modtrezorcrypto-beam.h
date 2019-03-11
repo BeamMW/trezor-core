@@ -58,6 +58,18 @@ static uint64_t mp_obj_get_uint64_beam(mp_const_obj_t arg) {
     }
 }
 
+static void gej_to_xy_bufs(secp256k1_gej* group_point, uint8_t* x_buf, uint8_t* y_buf) {
+    point_t intermediate_point_t;
+    int export_result = export_gej_to_point(group_point, &intermediate_point_t);
+    if (export_result == 0)
+        mp_raise_ValueError("Invalid data length (only 16, 20, 24, 28 and 32 bytes are allowed)");
+
+    // Copy contents to out buffer
+    memcpy(x_buf, intermediate_point_t.x, 32);
+    //TODO: memset() instead?
+    *y_buf = intermediate_point_t.y;
+}
+
 /// def hello_crypto_world() -> int:
 ///     '''
 ///     Hello from BEAM's crypto world
@@ -181,24 +193,28 @@ STATIC mp_obj_t mod_trezorcrypto_beam_derive_child_key(size_t n_args, const mp_o
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_derive_child_key_obj, 6, 6, mod_trezorcrypto_beam_derive_child_key);
 
-STATIC mp_obj_t mod_trezorcrypto_beam_secret_key_to_public_key(mp_obj_t secret_key, mp_obj_t public_key) {
+STATIC mp_obj_t mod_trezorcrypto_beam_secret_key_to_public_key(mp_obj_t secret_key, mp_obj_t public_key_x, mp_obj_t public_key_y) {
     mp_buffer_info_t sk;
     mp_get_buffer_raise(secret_key, &sk, MP_BUFFER_READ);
     scalar_t scalar_sk;
     scalar_import_nnz(&scalar_sk, (const uint8_t*)sk.buf);
 
-    mp_buffer_info_t pk;
-    mp_get_buffer_raise(public_key, &pk, MP_BUFFER_RW);
+    mp_buffer_info_t pk_x;
+    mp_get_buffer_raise(public_key_x, &pk_x, MP_BUFFER_RW);
+    mp_buffer_info_t pk_y;
+    mp_get_buffer_raise(public_key_y, &pk_y, MP_BUFFER_RW);
 
     //TODO<Kirill>: call it once on device initialization
     init_context();
-    //void sk_to_pk(scalar_t *sk, const secp256k1_gej *generator_pts, uint8_t *out32);
-    sk_to_pk(&scalar_sk, get_context()->generator.G_pts, (uint8_t*)pk.buf);
+    secp256k1_gej pk;
+    generator_mul_scalar(&pk, get_context()->generator.G_pts, &scalar_sk);
+    gej_to_xy_bufs(&pk, (uint8_t*)pk_x.buf, (uint8_t*)pk_y.buf);
     free_context();
+
     return mp_const_none;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(mod_trezorcrypto_beam_secret_key_to_public_key_obj, mod_trezorcrypto_beam_secret_key_to_public_key);
+STATIC MP_DEFINE_CONST_FUN_OBJ_3(mod_trezorcrypto_beam_secret_key_to_public_key_obj, mod_trezorcrypto_beam_secret_key_to_public_key);
 
 STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj_t* args) {
     mp_buffer_info_t msg32;
@@ -230,16 +246,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
     // Export scalar
     // Write data into raw pointer instead of scalar type
     scalar_get_b32((uint8_t*)out_k.buf, &out_scalar_k);
-
-    point_t out_k_point_t;
-    int export_result = export_gej_to_point(&nonce, &out_k_point_t);
-    if (export_result == 0)
-        mp_raise_ValueError("Invalid data length (only 16, 20, 24, 28 and 32 bytes are allowed)");
-
-    // Copy contents to out buffer
-    memcpy(out_nonce_pub_x.buf, out_k_point_t.x, 32);
-    //TODO: memset() instead?
-    *((uint8_t*)out_nonce_pub_y.buf) = out_k_point_t.y;
+    gej_to_xy_bufs(&nonce, (uint8_t*)out_nonce_pub_x.buf, (uint8_t*)out_nonce_pub_y.buf);
 
     free_context();
     return mp_const_none;
@@ -273,12 +280,14 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
     scalar_t scalar_k;
     scalar_import_nnz(&scalar_k, (const uint8_t*)k.buf);
 
-    mp_buffer_info_t pk;
-    mp_get_buffer_raise(args[4], &pk, MP_BUFFER_READ);
+    mp_buffer_info_t pk_x;
+    mp_get_buffer_raise(args[4], &pk_x, MP_BUFFER_READ);
+    mp_buffer_info_t pk_y;
+    mp_get_buffer_raise(args[5], &pk_y, MP_BUFFER_READ);
     point_t pk_point;
     // Copy contents to out buffer
-    memcpy(pk_point.x, pk.buf, 32);
-    pk_point.y = 0;
+    memcpy(pk_point.x, pk_x.buf, 32);
+    pk_point.y = *((int*)pk_y.buf);
     secp256k1_gej pk_gej;
     point_import_nnz(&pk_gej, &pk_point);
 
@@ -289,7 +298,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
     return mp_obj_new_int(is_valid);
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_is_valid_signature_obj, 5, 5, mod_trezorcrypto_beam_is_valid_signature);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_is_valid_signature_obj, 6, 6, mod_trezorcrypto_beam_is_valid_signature);
 
 STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_beam) },

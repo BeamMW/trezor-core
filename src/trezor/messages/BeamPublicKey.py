@@ -8,12 +8,15 @@ class BeamPublicKey(p.MessageType):
 
     def __init__(
         self,
-        xpub: bytes = None,
+        pub_x: bytes = None,
+        pub_y: bytes = None,
     ) -> None:
-        self.xpub = xpub
+        self.pub_x = pub_x
+        self.pub_y = pub_y
 
     @classmethod
     def get_fields(cls):
         return {
-            1: ('xpub', p.BytesType, 0),
+            1: ('pub_x', p.BytesType, 0),
+            2: ('pub_y', p.BytesType, 0),
         }

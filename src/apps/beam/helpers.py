@@ -31,13 +31,16 @@ def get_beam_sk():
 
 def get_beam_pk():
     # Secret key to public key
-    public_key = bytearray(32)
+    public_key_x = bytearray(32)
+    public_key_y = bytearray(1)
     sk = get_beam_sk()
-    beam.secret_key_to_public_key(sk, public_key)
+    beam.secret_key_to_public_key(sk, public_key_x, public_key_y)
 
-    return public_key
+    return (public_key_x, public_key_y)
 
-def is_valid_beam_message(signature, pk, message):
-    is_valid = beam.is_valid_signature(message, signature.nonce_pub_x, signature.nonce_pub_y, signature.sign_k, pk)
+def is_valid_beam_message(signature, pk_x, pk_y, message):
+    is_valid = beam.is_valid_signature(message,
+                                       signature.nonce_pub_x, signature.nonce_pub_y,
+                                       signature.sign_k, pk_x, pk_y)
 
     return is_valid

@@ -2,6 +2,7 @@
 # fmt: off
 import protobuf as p
 
+from .BeamPublicKey import BeamPublicKey
 from .BeamSignature import BeamSignature
 
 
@@ -11,17 +12,17 @@ class BeamVerifyMessage(p.MessageType):
     def __init__(
         self,
         signature: BeamSignature = None,
-        xpub: bytes = None,
+        public_key: BeamPublicKey = None,
         message: bytes = None,
     ) -> None:
         self.signature = signature
-        self.xpub = xpub
+        self.public_key = public_key
         self.message = message
 
     @classmethod
     def get_fields(cls):
         return {
             1: ('signature', BeamSignature, 0),
-            2: ('xpub', p.BytesType, 0),
+            2: ('public_key', BeamPublicKey, 0),
             3: ('message', p.BytesType, 0),
         }
