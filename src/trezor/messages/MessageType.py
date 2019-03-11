@@ -188,3 +188,5 @@ BeamConfirmResponseMessage = 701
 BeamSignMessage = 702
 BeamSignedMessage = 703
 BeamVerifyMessage = 704
+BeamGetPublicKey = 705
+BeamPublicKey = 706

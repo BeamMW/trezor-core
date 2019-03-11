@@ -11,14 +11,17 @@ class BeamVerifyMessage(p.MessageType):
     def __init__(
         self,
         signature: BeamSignature = None,
+        xpub: bytes = None,
         message: bytes = None,
     ) -> None:
         self.signature = signature
+        self.xpub = xpub
         self.message = message
 
     @classmethod
     def get_fields(cls):
         return {
             1: ('signature', BeamSignature, 0),
-            2: ('message', p.BytesType, 0),
+            2: ('xpub', p.BytesType, 0),
+            3: ('message', p.BytesType, 0),
         }

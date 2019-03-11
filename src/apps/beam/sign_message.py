@@ -1,4 +1,7 @@
 from trezor.crypto import beam
+from trezor.crypto.hashlib import sha256
+from trezor.utils import HashWriter
+
 from trezor.messages.BeamSignedMessage import BeamSignedMessage
 from trezor.messages.BeamSignature import BeamSignature
 
@@ -7,6 +10,15 @@ from apps.beam.helpers import (
     get_beam_sk,
 )
 from apps.beam.layout import *
+
+def message_digest(message):
+    h = HashWriter(sha256())
+    signed_message_header = 'Beam Signed Message:\n'
+    h.extend(signed_message_header)
+    h.extend(str(len(message)))
+    h.extend(message)
+    return sha256(h.get_digest()).digest()
+    #return h.get_digest()
 
 
 async def sign_message(ctx, msg):
@@ -17,7 +29,8 @@ async def sign_message(ctx, msg):
     sign_k = bytearray(32)
 
     sk = get_beam_sk()
-    beam.signature_sign(msg.msg, sk, sign_nonce_pub_x, sign_nonce_pub_y, sign_k)
+    digest = message_digest(msg.msg)
+    beam.signature_sign(digest, sk, sign_nonce_pub_x, sign_nonce_pub_y, sign_k)
     is_valid_msg = 'Sign_x: {}; Sign_y: {}; Sign_k: {}'.format(sign_nonce_pub_x,
                                                                sign_nonce_pub_y,
                                                                sign_k)
@@ -28,5 +41,6 @@ async def sign_message(ctx, msg):
                 break
 
     signature = BeamSignature(nonce_pub_x=sign_nonce_pub_x, nonce_pub_y=sign_nonce_pub_y, sign_k=sign_k)
+
     res = BeamSignedMessage(signature)
     return res

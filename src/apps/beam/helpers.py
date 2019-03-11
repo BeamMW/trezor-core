@@ -37,8 +37,7 @@ def get_beam_pk():
 
     return public_key
 
-def is_valid_beam_message(signature, message):
-    sk = get_beam_sk()
-    is_valid = beam.is_valid_signature(message, signature.nonce_pub_x, signature.nonce_pub_y, signature.sign_k, sk)
+def is_valid_beam_message(signature, pk, message):
+    is_valid = beam.is_valid_signature(message, signature.nonce_pub_x, signature.nonce_pub_y, signature.sign_k, pk)
 
     return is_valid

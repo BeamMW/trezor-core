@@ -221,11 +221,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
     mp_get_buffer_raise(args[4], &out_k, MP_BUFFER_RW);
     scalar_t out_scalar_k;
 
-    //TODO:move out of here
-    //secp256k1_gej pk;
-    //generator_mul_scalar(&pk, CONTEXT.generator.G_pts, &scalar_sk);
-    //////
-
     secp256k1_gej nonce;
     //TODO<Kirill>: call it once on device initialization
     init_context();
@@ -245,6 +240,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
     memcpy(out_nonce_pub_x.buf, out_k_point_t.x, 32);
     //TODO: memset() instead?
     *((uint8_t*)out_nonce_pub_y.buf) = out_k_point_t.y;
+
     free_context();
     return mp_const_none;
 }
@@ -277,20 +273,17 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
     scalar_t scalar_k;
     scalar_import_nnz(&scalar_k, (const uint8_t*)k.buf);
 
-    //!!!!!!!!!!!!!!!!
-    //TODO<Kirill>: don't accept SK as a parameter, accept parameter pk (sk after set_mul) instead
-    //!!!!!!!!!!!!!!!!
-    mp_buffer_info_t sk;
-    mp_get_buffer_raise(args[4], &sk, MP_BUFFER_READ);
-    scalar_t scalar_sk;
-    scalar_import_nnz(&scalar_sk, (const uint8_t*)sk.buf);
-    // Get pk
-    secp256k1_gej pk;
-    //TODO<Kirill>: call it once on device initialization
-    init_context();
-    generator_mul_scalar(&pk, get_context()->generator.G_pts, &scalar_sk);
+    mp_buffer_info_t pk;
+    mp_get_buffer_raise(args[4], &pk, MP_BUFFER_READ);
+    point_t pk_point;
+    // Copy contents to out buffer
+    memcpy(pk_point.x, pk.buf, 32);
+    pk_point.y = 0;
+    secp256k1_gej pk_gej;
+    point_import_nnz(&pk_gej, &pk_point);
 
-    int is_valid = signature_is_valid((const uint8_t*)msg32.buf, &nonce_pub, &scalar_k, &pk, get_context()->generator.G_pts);
+    init_context();
+    int is_valid = signature_is_valid((const uint8_t*)msg32.buf, &nonce_pub, &scalar_k, &pk_gej, get_context()->generator.G_pts);
     free_context();
 
     return mp_obj_new_int(is_valid);
