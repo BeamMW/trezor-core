@@ -300,6 +300,36 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_is_valid_signature_obj, 6, 6, mod_trezorcrypto_beam_is_valid_signature);
 
+STATIC mp_obj_t mod_trezorcrypto_beam_export_owner_key(size_t n_args, const mp_obj_t* args) {
+    mp_buffer_info_t master_key32;
+    mp_get_buffer_raise(args[0], &master_key32, MP_BUFFER_READ);
+
+    mp_buffer_info_t master_cofactor;
+    mp_get_buffer_raise(args[1], &master_cofactor, MP_BUFFER_READ);
+
+    mp_buffer_info_t pin_code;
+    mp_get_buffer_raise(args[2], &pin_code, MP_BUFFER_READ);
+    size_t pin_size = mp_obj_get_int(args[3]);
+
+    mp_buffer_info_t out_owner_key;
+    mp_get_buffer_raise(args[4], &out_owner_key, MP_BUFFER_RW);
+
+    scalar_t cofactor_scalar;
+    scalar_import_nnz(&cofactor_scalar, (const uint8_t*)master_cofactor.buf);
+
+    init_context();
+    char* owner_key = get_owner_key((const uint8_t*)master_key32.buf, &cofactor_scalar, (const uint8_t*)pin_code.buf, pin_size);
+    free_context();
+
+    memcpy(out_owner_key.buf, owner_key, 145);
+    free(owner_key);
+    owner_key = NULL;
+
+    return mp_const_none;
+}
+
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_export_owner_key_obj, 5, 5, mod_trezorcrypto_beam_export_owner_key);
+
 STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_beam) },
     { MP_ROM_QSTR(MP_QSTR_hello_crypto_world), MP_ROM_PTR(&mod_trezorcrypto_beam_hello_crypto_world_obj) },
@@ -310,6 +340,7 @@ STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_secret_key_to_public_key), MP_ROM_PTR(&mod_trezorcrypto_beam_secret_key_to_public_key_obj) },
     { MP_ROM_QSTR(MP_QSTR_signature_sign), MP_ROM_PTR(&mod_trezorcrypto_beam_signature_sign_obj) },
     { MP_ROM_QSTR(MP_QSTR_is_valid_signature), MP_ROM_PTR(&mod_trezorcrypto_beam_is_valid_signature_obj) },
+    { MP_ROM_QSTR(MP_QSTR_export_owner_key), MP_ROM_PTR(&mod_trezorcrypto_beam_export_owner_key_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT (

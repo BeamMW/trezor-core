@@ -190,3 +190,5 @@ BeamSignedMessage = 703
 BeamVerifyMessage = 704
 BeamGetPublicKey = 705
 BeamPublicKey = 706
+BeamGetOwnerKey = 707
+BeamOwnerKey = 708

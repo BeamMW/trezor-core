@@ -9,7 +9,7 @@ from apps.beam.layout import *
 def bin_to_str(binary_data):
     return ''.join('{:02x}'.format(x) for x in binary_data)
 
-def get_beam_sk():
+def get_beam_kdf():
     # Get kdf
     mnemonic = storage.get_mnemonic()
     seed = beam.phrase_to_seed(mnemonic)
@@ -17,12 +17,17 @@ def get_beam_sk():
     secret_key = bytearray(32)
     cofactor = bytearray(32)
     beam.seed_to_kdf(seed, seed_size, secret_key, cofactor)
+    return (secret_key, cofactor)
+
+def get_beam_sk():
     # Generate hash id
     a_id = 123456
     a_type = 1113748301
     sub_idx = 0
     hash_id = bytearray(32)
     beam.generate_hash_id(a_id, a_type, sub_idx, hash_id)
+    # Get kdf
+    secret_key, cofactor = get_beam_kdf()
     # Derive key
     res_sk = bytearray(32)
     beam.derive_child_key(secret_key, 32, hash_id, 32, cofactor, res_sk)
