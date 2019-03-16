@@ -29,6 +29,8 @@ async def get_owner_key(ctx, msg):
 
     export_warning_msg = 'Exposing the key to a third party allows them to see your balance.'
     await beam_confirm_message(ctx, 'Owner key', export_warning_msg, False)
+    wait_warning_msg = 'Please wait few seconds until exporting is done'
+    await beam_confirm_message(ctx, 'Owner key', wait_warning_msg, False)
 
     owner_key = bytearray(145)
     master_secret, master_cofactor = get_beam_kdf()
