@@ -318,7 +318,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_export_owner_key(size_t n_args, const mp_o
     scalar_import_nnz(&cofactor_scalar, (const uint8_t*)master_cofactor.buf);
 
     init_context();
-    char* owner_key = get_owner_key((const uint8_t*)master_key32.buf, &cofactor_scalar, (const uint8_t*)pin_code.buf, pin_size);
+    uint8_t* owner_key = get_owner_key((const uint8_t*)master_key32.buf, &cofactor_scalar, (const uint8_t*)pin_code.buf, pin_size);
     free_context();
 
     memcpy(out_owner_key.buf, owner_key, 145);

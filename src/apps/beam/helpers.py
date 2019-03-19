@@ -5,6 +5,9 @@ from apps.common import storage
 
 from apps.beam.layout import *
 
+def BBS_KEY():
+    return 1113748301
+
 
 def bin_to_str(binary_data):
     return ''.join('{:02x}'.format(x) for x in binary_data)
@@ -22,7 +25,7 @@ def get_beam_kdf():
 def get_beam_sk():
     # Generate hash id
     a_id = 123456
-    a_type = 1113748301
+    a_type = BBS_KEY()
     sub_idx = 0
     hash_id = bytearray(32)
     beam.generate_hash_id(a_id, a_type, sub_idx, hash_id)

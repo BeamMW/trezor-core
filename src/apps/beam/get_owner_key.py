@@ -14,6 +14,7 @@ from apps.beam.helpers import (
 )
 from apps.beam.layout import *
 
+import ubinascii
 
 async def get_owner_key(ctx, msg):
     if not config.has_pin():
@@ -32,12 +33,16 @@ async def get_owner_key(ctx, msg):
     wait_warning_msg = 'Please wait few seconds until exporting is done'
     await beam_confirm_message(ctx, 'Owner key', wait_warning_msg, False)
 
-    owner_key = bytearray(145)
+    # AES encoded owner key takes 108 bytes
+    owner_key = bytearray(108)
     master_secret, master_cofactor = get_beam_kdf()
     print('Pin: {};\nEncoded pin: {}'.format(pin, str(pin.encode())))
     pin = pin.encode()
     beam.export_owner_key(master_secret, master_cofactor, pin, len(pin), owner_key)
-    print('Owner key: {};\nStr owner key: {}'.format(str(owner_key), str(owner_key, 'utf-8')))
+    #print('Owner key: {};\nStr owner key: {}'.format(str(owner_key)))#, str(owner_key, 'utf-8')))
+    print('Str owner key: {}'.format(str(owner_key)))
+    owner_key = ubinascii.b2a_base64(owner_key)
+    print('Base64 Owner key: {}'.format(str(owner_key)))
 
     #owner_key, _ = get_beam_pk()
     if msg.show_display:
