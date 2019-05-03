@@ -3,6 +3,8 @@
 
 #include "beam/beam.h"
 #include "beam/functions.h"
+#include "beam/rangeproof.h"
+#include "beam/kernel.h"
 
 
 /// package: trezorcrypto.beam
@@ -235,18 +237,17 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
 
     mp_buffer_info_t out_k;
     mp_get_buffer_raise(args[4], &out_k, MP_BUFFER_RW);
-    scalar_t out_scalar_k;
 
-    secp256k1_gej nonce;
     //TODO<Kirill>: call it once on device initialization
     init_context();
     //void signature_sign(const uint8_t *msg32, const scalar_t *sk, const secp256k1_gej *generator_pts, secp256k1_gej *out_nonce_pub, scalar_t *out_k)
-    signature_sign((const uint8_t*)msg32.buf, &scalar_sk, get_context()->generator.G_pts, &nonce, &out_scalar_k);
-    printf(" Internal! ---- out_nonce_pub  %d\n", (int)nonce.x.n[0]);
+    ecc_signature_t signature;
+    signature_sign((const uint8_t*)msg32.buf, &scalar_sk, get_context()->generator.G_pts, &signature);
+    printf(" Internal! ---- out_nonce_pub  %d\n", (int)signature.nonce_pub.x.n[0]);
     // Export scalar
     // Write data into raw pointer instead of scalar type
-    scalar_get_b32((uint8_t*)out_k.buf, &out_scalar_k);
-    gej_to_xy_bufs(&nonce, (uint8_t*)out_nonce_pub_x.buf, (uint8_t*)out_nonce_pub_y.buf);
+    scalar_get_b32((uint8_t*)out_k.buf, &signature.k);
+    gej_to_xy_bufs(&signature.nonce_pub, (uint8_t*)out_nonce_pub_x.buf, (uint8_t*)out_nonce_pub_y.buf);
 
     free_context();
     return mp_const_none;
@@ -271,14 +272,13 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
     memcpy(nonce_pub_point.x, nonce_pub_x.buf, 32);
     nonce_pub_point.y = *((int*)nonce_pub_y.buf);
     // Convert point t to secp256k1_gej nonce pub
-    secp256k1_gej nonce_pub;
-    point_import_nnz(&nonce_pub, &nonce_pub_point);
+    ecc_signature_t signature;
+    point_import_nnz(&signature.nonce_pub, &nonce_pub_point);
 
     // Get scalar k
     mp_buffer_info_t k;
     mp_get_buffer_raise(args[3], &k, MP_BUFFER_READ);
-    scalar_t scalar_k;
-    scalar_import_nnz(&scalar_k, (const uint8_t*)k.buf);
+    scalar_import_nnz(&signature.k, (const uint8_t*)k.buf);
 
     mp_buffer_info_t pk_x;
     mp_get_buffer_raise(args[4], &pk_x, MP_BUFFER_READ);
@@ -292,7 +292,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
     point_import_nnz(&pk_gej, &pk_point);
 
     init_context();
-    int is_valid = signature_is_valid((const uint8_t*)msg32.buf, &nonce_pub, &scalar_k, &pk_gej, get_context()->generator.G_pts);
+    int is_valid = signature_is_valid((const uint8_t*)msg32.buf, &signature, &pk_gej, get_context()->generator.G_pts);
     free_context();
 
     return mp_obj_new_int(is_valid);
