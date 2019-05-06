@@ -5,6 +5,7 @@
 #include "beam/functions.h"
 #include "beam/rangeproof.h"
 #include "beam/kernel.h"
+#include "beam/misc.h"
 
 
 /// package: trezorcrypto.beam
@@ -77,6 +78,10 @@ static void gej_to_xy_bufs(secp256k1_gej* group_point, uint8_t* x_buf, uint8_t* 
 ///     Hello from BEAM's crypto world
 ///     '''
 STATIC mp_obj_t mod_trezorcrypto_beam_hello_crypto_world(void) {
+    init_context();
+    test_tx_kernel();
+    free_context();
+
     int code = get_beam_hello();
     printf("Hello from Beam with code: %d", code);
     return mp_obj_new_int(code);
