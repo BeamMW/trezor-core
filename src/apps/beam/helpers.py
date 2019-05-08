@@ -8,6 +8,11 @@ from apps.beam.layout import *
 def BBS_KEY():
     return 1113748301
 
+def beam_app_id():
+    return 19
+
+def get_master_nonce_idx():
+    return 0
 
 def bin_to_str(binary_data):
     return ''.join('{:02x}'.format(x) for x in binary_data)
