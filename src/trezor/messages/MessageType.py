@@ -192,3 +192,6 @@ BeamGetPublicKey = 705
 BeamPublicKey = 706
 BeamGetOwnerKey = 707
 BeamOwnerKey = 708
+BeamGenerateKey = 709
+BeamGenerateNonce = 710
+BeamECCImage = 711
