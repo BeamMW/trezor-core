@@ -9,7 +9,7 @@ from apps.beam.helpers import (
 
 async def generate_nonce(ctx, msg):
     idx = msg.slot
-    if i == get_master_nonce_idx() or i > 255:
+    if idx == get_master_nonce_idx() or idx > 255:
         return Failure(message='Incorrect slot provided')
 
     _, nonce_image = derive_nonce(msg.slot)

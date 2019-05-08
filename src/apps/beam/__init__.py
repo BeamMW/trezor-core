@@ -11,3 +11,4 @@ def boot():
     wire.add(MessageType.BeamGetPublicKey, __name__, 'get_public_key')
     wire.add(MessageType.BeamGetOwnerKey, __name__, 'get_owner_key')
     wire.add(MessageType.BeamGenerateKey, __name__, 'generate_key')
+    wire.add(MessageType.BeamGenerateNonce, __name__, 'generate_nonce')
