@@ -195,3 +195,5 @@ BeamOwnerKey = 708
 BeamGenerateKey = 709
 BeamGenerateNonce = 710
 BeamECCImage = 711
+BeamGenerateRangeproof = 712
+BeamRangeproofData = 713

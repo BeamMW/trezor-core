@@ -12,3 +12,4 @@ def boot():
     wire.add(MessageType.BeamGetOwnerKey, __name__, 'get_owner_key')
     wire.add(MessageType.BeamGenerateKey, __name__, 'generate_key')
     wire.add(MessageType.BeamGenerateNonce, __name__, 'generate_nonce')
+    wire.add(MessageType.BeamGenerateRangeproof, __name__, 'generate_rangeproof')
