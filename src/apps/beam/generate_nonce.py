@@ -12,5 +12,8 @@ async def generate_nonce(ctx, msg):
     if idx == get_master_nonce_idx() or idx > 255:
         return Failure(message='Incorrect slot provided')
 
+    if not is_master_nonce_created():
+        return Failure(message='Nonce Generator is not initialized')
+
     _, nonce_image = derive_nonce(msg.slot)
     return BeamECCImage(image_x=nonce_image)

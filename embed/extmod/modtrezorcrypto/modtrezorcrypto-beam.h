@@ -374,33 +374,36 @@ STATIC mp_obj_t mod_trezorcrypto_beam_create_master_nonce(size_t n_args, const m
     mp_buffer_info_t master_nonce;
     mp_get_buffer_raise(args[0], &master_nonce, MP_BUFFER_RW);
 
-    init_context();
-    create_master_nonce((uint8_t*)master_nonce.buf);
-    free_context();
+    mp_buffer_info_t seed;
+    mp_get_buffer_raise(args[1], &seed, MP_BUFFER_READ);
+
+    create_master_nonce((uint8_t*)master_nonce.buf, (uint8_t*)seed.buf);
 
     return mp_const_none;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_create_master_nonce_obj, 1, 1, mod_trezorcrypto_beam_create_master_nonce);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_create_master_nonce_obj, 2, 2, mod_trezorcrypto_beam_create_master_nonce);
 
 STATIC mp_obj_t mod_trezorcrypto_beam_create_derived_nonce(size_t n_args, const mp_obj_t* args) {
     mp_buffer_info_t master_nonce;
     mp_get_buffer_raise(args[0], &master_nonce, MP_BUFFER_READ);
 
+    uint8_t idx = mp_obj_get_int(args[1]);
+
     mp_buffer_info_t out_new_nonce;
-    mp_get_buffer_raise(args[1], &out_new_nonce, MP_BUFFER_RW);
+    mp_get_buffer_raise(args[2], &out_new_nonce, MP_BUFFER_RW);
 
     mp_buffer_info_t out_new_image;
-    mp_get_buffer_raise(args[2], &out_new_image, MP_BUFFER_RW);
+    mp_get_buffer_raise(args[3], &out_new_image, MP_BUFFER_RW);
 
     init_context();
-    create_derived_nonce((const uint8_t*)master_nonce.buf, (uint8_t*)out_new_nonce.buf, (uint8_t*)out_new_image.buf);
+    create_derived_nonce((const uint8_t*)master_nonce.buf, idx, (uint8_t*)out_new_nonce.buf, (uint8_t*)out_new_image.buf);
     free_context();
 
     return mp_const_none;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_create_derived_nonce_obj, 3, 3, mod_trezorcrypto_beam_create_derived_nonce);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_create_derived_nonce_obj, 4, 4, mod_trezorcrypto_beam_create_derived_nonce);
 
 STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_beam) },
