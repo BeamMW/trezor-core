@@ -11,17 +11,14 @@ class BeamGenerateRangeproof(p.MessageType):
     def __init__(
         self,
         kidv: BeamKeyIDV = None,
-        slot: int = None,
         is_public: bool = None,
     ) -> None:
         self.kidv = kidv
-        self.slot = slot
         self.is_public = is_public
 
     @classmethod
     def get_fields(cls):
         return {
             1: ('kidv', BeamKeyIDV, 0),
-            2: ('slot', p.UVarintType, 0),
-            3: ('is_public', p.BoolType, 0),
+            2: ('is_public', p.BoolType, 0),
         }

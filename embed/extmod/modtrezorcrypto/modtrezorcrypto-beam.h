@@ -417,30 +417,22 @@ STATIC mp_obj_t mod_trezorcrypto_beam_generate_rp_from_key_idv(size_t n_args, co
     kidv.id.sub_idx = sub_idx;
     kidv.value = value;
 
-    mp_buffer_info_t sk_bytes;
-    mp_get_buffer_raise(args[4], &sk_bytes, MP_BUFFER_READ);
-    //TODO: create scalar from received bytes
-
-    mp_buffer_info_t nonce;
-    mp_get_buffer_raise(args[5], &nonce, MP_BUFFER_READ);
-    //TODO: use nonce
-
     mp_buffer_info_t asset_id;
-    mp_get_buffer_raise(args[6], &asset_id, MP_BUFFER_READ);
+    mp_get_buffer_raise(args[4], &asset_id, MP_BUFFER_READ);
 
-    const uint8_t is_public = mp_obj_get_int(args[7]);
+    const uint8_t is_public = mp_obj_get_int(args[5]);
 
     mp_buffer_info_t out_rp;
-    mp_get_buffer_raise(args[8], &out_rp, MP_BUFFER_RW);
+    mp_get_buffer_raise(args[6], &out_rp, MP_BUFFER_RW);
 
     init_context();
-    rangeproof_create_from_key_idv((uint8_t*)out_rp.buf, &kidv, NULL, NULL, NULL, is_public);
+    rangeproof_create_from_key_idv((uint8_t*)out_rp.buf, &kidv, NULL, is_public);
     free_context();
 
     return mp_const_none;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_generate_rp_from_key_idv_obj, 9, 9, mod_trezorcrypto_beam_generate_rp_from_key_idv);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_generate_rp_from_key_idv_obj, 7, 7, mod_trezorcrypto_beam_generate_rp_from_key_idv);
 
 STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_beam) },
