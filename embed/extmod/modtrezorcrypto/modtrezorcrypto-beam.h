@@ -352,14 +352,19 @@ STATIC mp_obj_t mod_trezorcrypto_beam_generate_key(size_t n_args, const mp_obj_t
     //TODO<Kirill>: call it once on device initialization
     init_context();
 
+    mp_buffer_info_t seed;
+    mp_get_buffer_raise(args[5], &seed, MP_BUFFER_READ);
+    HKdf_t kdf;
+    get_HKdf(0, (uint8_t*)seed.buf, &kdf);
+
     secp256k1_gej commitment;
-    create_kidv_image(&kidv, &commitment, is_coin_key);
+    create_kidv_image(&kdf, &kidv, &commitment, is_coin_key);
 
     mp_buffer_info_t out_image_x;
-    mp_get_buffer_raise(args[5], &out_image_x, MP_BUFFER_RW);
+    mp_get_buffer_raise(args[6], &out_image_x, MP_BUFFER_RW);
 
     mp_buffer_info_t out_image_y;
-    mp_get_buffer_raise(args[6], &out_image_y, MP_BUFFER_RW);
+    mp_get_buffer_raise(args[7], &out_image_y, MP_BUFFER_RW);
 
     gej_to_xy_bufs(&commitment, (uint8_t*)out_image_x.buf, (uint8_t*)out_image_y.buf);
 
@@ -368,7 +373,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_generate_key(size_t n_args, const mp_obj_t
     return mp_const_none;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_generate_key_obj, 7, 7, mod_trezorcrypto_beam_generate_key);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_generate_key_obj, 8, 8, mod_trezorcrypto_beam_generate_key);
 
 STATIC mp_obj_t mod_trezorcrypto_beam_create_master_nonce(size_t n_args, const mp_obj_t* args) {
     mp_buffer_info_t master_nonce;
@@ -422,17 +427,23 @@ STATIC mp_obj_t mod_trezorcrypto_beam_generate_rp_from_key_idv(size_t n_args, co
 
     const uint8_t is_public = mp_obj_get_int(args[5]);
 
+    mp_buffer_info_t seed;
+    mp_get_buffer_raise(args[6], &seed, MP_BUFFER_READ);
+
+    HKdf_t kdf;
+    get_HKdf(0, (uint8_t*)seed.buf, &kdf);
+
     mp_buffer_info_t out_rp;
-    mp_get_buffer_raise(args[6], &out_rp, MP_BUFFER_RW);
+    mp_get_buffer_raise(args[7], &out_rp, MP_BUFFER_RW);
 
     init_context();
-    rangeproof_create_from_key_idv((uint8_t*)out_rp.buf, &kidv, NULL, is_public);
+    rangeproof_create_from_key_idv(&kdf, (uint8_t*)out_rp.buf, &kidv, NULL, is_public);
     free_context();
 
     return mp_const_none;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_generate_rp_from_key_idv_obj, 7, 7, mod_trezorcrypto_beam_generate_rp_from_key_idv);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_generate_rp_from_key_idv_obj, 8, 8, mod_trezorcrypto_beam_generate_rp_from_key_idv);
 
 STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_beam) },
