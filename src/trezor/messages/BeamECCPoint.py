@@ -3,17 +3,20 @@
 import protobuf as p
 
 
-class BeamECCImage(p.MessageType):
+class BeamECCPoint(p.MessageType):
     MESSAGE_WIRE_TYPE = 711
 
     def __init__(
         self,
-        image_x: bytes = None,
+        x: bytes = None,
+        y: bytes = None,
     ) -> None:
-        self.image_x = image_x
+        self.x = x
+        self.y = y
 
     @classmethod
     def get_fields(cls):
         return {
-            1: ('image_x', p.BytesType, 0),
+            1: ('x', p.BytesType, 0),
+            2: ('y', p.BytesType, 0),
         }

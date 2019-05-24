@@ -61,6 +61,147 @@ static uint64_t mp_obj_get_uint64_beam(mp_const_obj_t arg) {
     }
 }
 
+
+typedef struct _mp_obj_key_idv_t {
+    mp_obj_base_t base;
+    key_idv_t kidv;
+} mp_obj_key_idv_t;
+
+STATIC const mp_obj_type_t mod_trezorcrypto_beam_key_idv_type;
+
+typedef struct _mp_obj_beam_transaction_maker_t {
+    mp_obj_base_t base;
+    kidv_vec_t inputs;
+    kidv_vec_t outputs;
+} mp_obj_beam_transaction_maker_t;
+
+STATIC const mp_obj_type_t mod_trezorcrypto_beam_transaction_maker_type;
+
+//
+// Constructors
+//
+
+/// class TransactionMaker:
+///     '''
+///     TransactionMaker serves as a facade to build and sign the transaction
+///     '''
+///
+///     def __init__(self):
+///         '''
+///         Creates TransactionMaker object
+///         '''
+///
+///     def add_input(self, input: KeyIDV):
+///         '''
+///         Adds input to the transaction
+///         '''
+///
+///     def add_output(self, output: KeyIDV):
+///         '''
+///         Adds output to the transaction
+///         '''
+STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_make_new(const mp_obj_type_t* type, size_t n_args, size_t n_kw, const mp_obj_t* args) {
+    mp_arg_check_num(n_args, n_kw, 0, 0, false);
+    mp_obj_beam_transaction_maker_t* o = m_new_obj(mp_obj_beam_transaction_maker_t);
+    o->base.type = type;
+
+    vec_init(&o->inputs);
+    vec_init(&o->outputs);
+
+    return MP_OBJ_FROM_PTR(o);
+}
+
+STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker___del__(mp_obj_t self) {
+    mp_obj_beam_transaction_maker_t* o = MP_OBJ_TO_PTR(self);
+
+    //TODO: if we add support for nested kernels, we should also deinit all nested inputs/outputs list of these kernels
+    // @see beam/misc.c in `transaction_free()` method
+    //vec_deinit_inner_ptrs(&o->inputs, tx_input_t);
+    //transaction_free_outputs(&o->outputs);
+
+    vec_deinit(&o->inputs);
+    vec_deinit(&o->outputs);
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_trezorcrypto_beam_transaction_maker___del___obj, mod_trezorcrypto_beam_transaction_maker___del__);
+
+STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_add_input(mp_obj_t self, mp_obj_t kidv_input) {
+    mp_obj_beam_transaction_maker_t* o = MP_OBJ_TO_PTR(self);
+    mp_obj_key_idv_t* input_obj = MP_OBJ_TO_PTR(kidv_input);
+    key_idv_t kidv;
+    memcpy(&kidv, &input_obj->kidv, sizeof(key_idv_t));
+
+    vec_push(&o->inputs, kidv);
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(mod_trezorcrypto_beam_transaction_maker_add_input_obj, mod_trezorcrypto_beam_transaction_maker_add_input);
+
+STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_add_output(mp_obj_t self, mp_obj_t kidv_output) {
+    mp_obj_beam_transaction_maker_t* o = MP_OBJ_TO_PTR(self);
+    mp_obj_key_idv_t* output_obj = MP_OBJ_TO_PTR(kidv_output);
+    key_idv_t kidv;
+    memcpy(&kidv, &output_obj->kidv, sizeof(key_idv_t));
+
+    vec_push(&o->outputs, kidv);
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(mod_trezorcrypto_beam_transaction_maker_add_output_obj, mod_trezorcrypto_beam_transaction_maker_add_output);
+
+/// class KeyIDV:
+///     '''
+///     Beam KeyIDV
+///     '''
+///
+///     def __init__(self):
+///         '''
+///         Creates a KIDV object.
+///         '''
+///
+///     def set(self, idx: uint, type: uint, sub_idx: uint, value: uint):
+///         '''
+///         Sets index, type, sub index and value of KIDV object.
+///         '''
+STATIC mp_obj_t mod_trezorcrypto_beam_key_idv_make_new(const mp_obj_type_t* type, size_t n_args, size_t n_kw, const mp_obj_t* args) {
+    mp_arg_check_num(n_args, n_kw, 0, 0, false);
+    mp_obj_key_idv_t* o = m_new_obj(mp_obj_key_idv_t);
+    o->base.type = type;
+
+    key_idv_init(&o->kidv);
+
+    return MP_OBJ_FROM_PTR(o);
+}
+
+STATIC mp_obj_t mod_trezorcrypto_beam_key_idv_set(size_t n_args, const mp_obj_t* args) {
+    mp_obj_key_idv_t *o = MP_OBJ_TO_PTR(args[0]);
+
+    uint64_t idx = mp_obj_get_uint64_beam(args[1]);
+    uint32_t type = mp_obj_get_int(args[2]);
+    uint32_t sub_idx = mp_obj_get_int(args[3]);
+    uint64_t value = mp_obj_get_uint64_beam(args[4]);
+
+    o->kidv.id.idx = idx;
+    o->kidv.id.type = type;
+    o->kidv.id.sub_idx = sub_idx;
+    o->kidv.value = value;
+
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_key_idv_set_obj, 5, 5, mod_trezorcrypto_beam_key_idv_set);
+
+STATIC mp_obj_t mod_trezorcrypto_beam_key_idv___del__(mp_obj_t self) {
+    mp_obj_key_idv_t *o = MP_OBJ_TO_PTR(self);
+    memzero(&(o->kidv), sizeof(key_idv_t));
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_trezorcrypto_beam_key_idv___del___obj, mod_trezorcrypto_beam_key_idv___del__);
+
+///
+///
+///
+
 static void gej_to_xy_bufs(secp256k1_gej* group_point, uint8_t* x_buf, uint8_t* y_buf) {
     point_t intermediate_point_t;
     int export_result = export_gej_to_point(group_point, &intermediate_point_t);
@@ -445,6 +586,37 @@ STATIC mp_obj_t mod_trezorcrypto_beam_generate_rp_from_key_idv(size_t n_args, co
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_generate_rp_from_key_idv_obj, 8, 8, mod_trezorcrypto_beam_generate_rp_from_key_idv);
 
+//
+// Type defs
+//
+
+STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_key_idv_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&mod_trezorcrypto_beam_key_idv___del___obj) },
+    { MP_ROM_QSTR(MP_QSTR_set), MP_ROM_PTR(&mod_trezorcrypto_beam_key_idv_set_obj) },
+};
+STATIC MP_DEFINE_CONST_DICT(mod_trezorcrypto_beam_key_idv_locals_dict, mod_trezorcrypto_beam_key_idv_locals_dict_table);
+
+STATIC const mp_obj_type_t mod_trezorcrypto_beam_key_idv_type = {
+    { &mp_type_type },
+    .name = MP_QSTR_KeyIDV,
+    .make_new = mod_trezorcrypto_beam_key_idv_make_new,
+    .locals_dict = (void*)&mod_trezorcrypto_beam_key_idv_locals_dict,
+};
+
+STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_transaction_maker_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&mod_trezorcrypto_beam_key_idv___del___obj) },
+    { MP_ROM_QSTR(MP_QSTR_add_input), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_add_input_obj) },
+    { MP_ROM_QSTR(MP_QSTR_add_output), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_add_output_obj) },
+};
+STATIC MP_DEFINE_CONST_DICT(mod_trezorcrypto_beam_transaction_maker_locals_dict, mod_trezorcrypto_beam_transaction_maker_locals_dict_table);
+
+STATIC const mp_obj_type_t mod_trezorcrypto_beam_transaction_maker_type = {
+    { &mp_type_type },
+    .name = MP_QSTR_TransactionMaker,
+    .make_new = mod_trezorcrypto_beam_transaction_maker_make_new,
+    .locals_dict = (void*)&mod_trezorcrypto_beam_transaction_maker_locals_dict,
+};
+
 STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_beam) },
     { MP_ROM_QSTR(MP_QSTR_hello_crypto_world), MP_ROM_PTR(&mod_trezorcrypto_beam_hello_crypto_world_obj) },
@@ -460,6 +632,8 @@ STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_create_master_nonce), MP_ROM_PTR(&mod_trezorcrypto_beam_create_master_nonce_obj) },
     { MP_ROM_QSTR(MP_QSTR_create_derived_nonce), MP_ROM_PTR(&mod_trezorcrypto_beam_create_derived_nonce_obj) },
     { MP_ROM_QSTR(MP_QSTR_generate_rp_from_key_idv), MP_ROM_PTR(&mod_trezorcrypto_beam_generate_rp_from_key_idv_obj) },
+    { MP_ROM_QSTR(MP_QSTR_KeyIDV), MP_ROM_PTR(&mod_trezorcrypto_beam_key_idv_type) },
+    { MP_ROM_QSTR(MP_QSTR_TransactionMaker), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_type) },
 };
 
 STATIC MP_DEFINE_CONST_DICT (
