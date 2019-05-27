@@ -13,3 +13,4 @@ def boot():
     wire.add(MessageType.BeamGenerateKey, __name__, 'generate_key')
     wire.add(MessageType.BeamGenerateNonce, __name__, 'generate_nonce')
     wire.add(MessageType.BeamGenerateRangeproof, __name__, 'generate_rangeproof')
+    wire.add(MessageType.BeamSignTransaction, __name__, 'sign_transaction')
