@@ -1,5 +1,5 @@
 from trezor import config, ui, wire
-from trezor.crypto import bip39
+from trezor.crypto import bip39, random
 from trezor.messages.ButtonRequest import ButtonRequest
 from trezor.messages.ButtonRequestType import (
     MnemonicInput,
@@ -69,6 +69,9 @@ async def recovery_device(ctx, msg):
     storage.set_u2f_counter(msg.u2f_counter)
     storage.load_settings(label=msg.label, use_passphrase=msg.passphrase_protection)
     storage.load_mnemonic(mnemonic=mnemonic, needs_backup=False, no_backup=False)
+
+    beam_nonce_seed = random.bytes(32)
+    create_master_nonce(beam_nonce_seed)
 
     return Success(message="Device recovered")
 

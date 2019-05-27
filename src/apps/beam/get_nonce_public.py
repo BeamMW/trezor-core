@@ -7,7 +7,7 @@ from apps.beam.helpers import (
     get_master_nonce_idx,
 )
 
-async def generate_nonce(ctx, msg):
+async def get_nonce_public(ctx, msg):
     idx = msg.slot
     if idx == get_master_nonce_idx() or idx > 255:
         return Failure(message='Incorrect slot provided')
@@ -15,5 +15,5 @@ async def generate_nonce(ctx, msg):
     if not is_master_nonce_created():
         return Failure(message='Nonce Generator is not initialized')
 
-    _, nonce_image = derive_nonce(msg.slot)
-    return BeamECCImage(image_x=nonce_image)
+    pubkey_x, pubkey_y = get_nonce_pub(msg.slot)
+    return BeamPublicKey(pub_x=pubkey_x, pub_y=pubkey_y)
