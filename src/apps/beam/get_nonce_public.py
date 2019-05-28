@@ -1,5 +1,5 @@
-from trezor.messages.BeamGenerateNonce import BeamGenerateNonce
-from trezor.messages.BeamECCImage import BeamECCImage
+from trezor.messages.BeamGetNoncePublic import BeamGetNoncePublic
+from trezor.messages.BeamPublicKey import BeamPublicKey
 from trezor.messages.Failure import Failure
 
 from apps.beam.nonce import *
