@@ -61,7 +61,6 @@ static uint64_t mp_obj_get_uint64_beam(mp_const_obj_t arg) {
     }
 }
 
-
 typedef struct _mp_obj_key_idv_t {
     mp_obj_base_t base;
     key_idv_t kidv;
@@ -73,6 +72,7 @@ typedef struct _mp_obj_beam_transaction_maker_t {
     mp_obj_base_t base;
     kidv_vec_t inputs;
     kidv_vec_t outputs;
+    transaction_data_t tx_data;
 } mp_obj_beam_transaction_maker_t;
 
 STATIC const mp_obj_type_t mod_trezorcrypto_beam_transaction_maker_type;
@@ -100,6 +100,22 @@ STATIC const mp_obj_type_t mod_trezorcrypto_beam_transaction_maker_type;
 ///         '''
 ///         Adds output to the transaction
 ///         '''
+///
+///     def sign_transaction(self, seed: bytes):
+///         '''
+///         Signs transaction with kdf createn from given seed
+///         '''
+///
+///     def set_transaction_data(self,
+///                              fee: uint,
+///                              min_height: uint, max_height: uint,
+///                              commitment_x: bytes, commitment_y: uint,
+///                              nonce_x: bytes, nonce_y: uint,
+///                              nonce_slot: uint,
+///                              sk_offset: bytes):
+///         '''
+///         Sets fields for transaction data
+///         '''
 STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_make_new(const mp_obj_type_t* type, size_t n_args, size_t n_kw, const mp_obj_t* args) {
     mp_arg_check_num(n_args, n_kw, 0, 0, false);
     mp_obj_beam_transaction_maker_t* o = m_new_obj(mp_obj_beam_transaction_maker_t);
@@ -107,6 +123,9 @@ STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_make_new(const mp_obj_ty
 
     vec_init(&o->inputs);
     vec_init(&o->outputs);
+
+    // Set invalid nonce slot at initialization, so transaction sign won't occur
+    o->tx_data.nonce_slot = MASTER_NONCE_SLOT;
 
     return MP_OBJ_FROM_PTR(o);
 }
@@ -138,7 +157,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_add_input(mp_obj_t self,
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(mod_trezorcrypto_beam_transaction_maker_add_input_obj, mod_trezorcrypto_beam_transaction_maker_add_input);
 
-STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_add_output(mp_obj_t self, mp_obj_t kidv_output) {
+STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_add_output(mp_obj_t self, const mp_obj_t kidv_output) {
     mp_obj_beam_transaction_maker_t* o = MP_OBJ_TO_PTR(self);
     mp_obj_key_idv_t* output_obj = MP_OBJ_TO_PTR(kidv_output);
     key_idv_t kidv;
@@ -149,6 +168,108 @@ STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_add_output(mp_obj_t self
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(mod_trezorcrypto_beam_transaction_maker_add_output_obj, mod_trezorcrypto_beam_transaction_maker_add_output);
+
+STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_1(mp_obj_t self, const mp_obj_t seed_bytes, mp_obj_t out_sk_total) {
+    mp_obj_beam_transaction_maker_t* o = MP_OBJ_TO_PTR(self);
+
+    mp_buffer_info_t seed;
+    mp_get_buffer_raise(seed_bytes, &seed, MP_BUFFER_READ);
+
+    HKdf_t kdf;
+    get_HKdf(0, (uint8_t*)seed.buf, &kdf);
+
+    uint64_t value_transferred = 0;
+
+    scalar_t sk_total;
+    init_context();
+    sign_transaction_part_1(&value_transferred, &sk_total,
+                            &o->inputs, &o->outputs, &o->tx_data,
+                            &kdf);
+    free_context();
+    //printf("Value transferred: %ld", value_transferred);
+
+    mp_buffer_info_t sk_buf;
+    mp_get_buffer_raise(out_sk_total, &sk_buf, MP_BUFFER_RW);
+
+    scalar_get_b32((uint8_t*)sk_buf.buf, &sk_total);
+
+    return mp_obj_new_int(value_transferred);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_3(mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_1_obj, mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_1);
+
+STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_2(size_t n_args, const mp_obj_t* args) {
+    mp_obj_beam_transaction_maker_t* o = MP_OBJ_TO_PTR(args[0]);
+
+    if (! is_valid_nonce_slot(o->tx_data.nonce_slot))
+        return mp_obj_new_int(0);
+
+    mp_buffer_info_t sk_total_buf;
+    mp_get_buffer_raise(args[1], &sk_total_buf, MP_BUFFER_READ);
+
+    scalar_t sk_total;
+    scalar_import_nnz(&sk_total, (const uint8_t*)sk_total_buf.buf);
+
+    mp_buffer_info_t nonce_buf;
+    mp_get_buffer_raise(args[2], &nonce_buf, MP_BUFFER_READ);
+
+    scalar_t nonce;
+    scalar_import_nnz(&nonce, (const uint8_t*)nonce_buf.buf);
+
+    scalar_t res_sk;
+    scalar_clear(&res_sk);
+
+    init_context();
+    sign_transaction_part_2(&res_sk, &o->tx_data, &nonce, &sk_total);
+    free_context();
+
+    mp_buffer_info_t out_res;
+    mp_get_buffer_raise(args[3], &out_res, MP_BUFFER_RW);
+
+    scalar_get_b32((uint8_t*)out_res.buf, &res_sk);
+
+    return mp_obj_new_int(1);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_2_obj, 4, 4, mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_2);
+
+STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_set_transaction_data(size_t n_args, const mp_obj_t* args) {
+    mp_obj_beam_transaction_maker_t* o = MP_OBJ_TO_PTR(args[0]);
+
+    const uint64_t fee = mp_obj_get_uint64_beam(args[1]);
+    const uint64_t min_height = mp_obj_get_uint64_beam(args[2]);
+    const uint64_t max_height = mp_obj_get_uint64_beam(args[3]);
+
+    o->tx_data.fee = fee;
+    o->tx_data.min_height = min_height;
+    o->tx_data.max_height = max_height;
+
+    mp_buffer_info_t peer_commitment_x;
+    mp_get_buffer_raise(args[4], &peer_commitment_x, MP_BUFFER_READ);
+    const uint8_t peer_commitment_y = mp_obj_get_int(args[5]);
+    memcpy(&o->tx_data.kernel_commitment.x, (const uint8_t*)peer_commitment_x.buf, DIGEST_LENGTH);
+    o->tx_data.kernel_commitment.y = peer_commitment_y;
+
+    mp_buffer_info_t peer_nonce_x;
+    mp_get_buffer_raise(args[6], &peer_nonce_x, MP_BUFFER_READ);
+    const uint8_t peer_nonce_y = mp_obj_get_int(args[7]);
+    memcpy(&o->tx_data.kernel_nonce.x, (const uint8_t*)peer_nonce_x.buf, DIGEST_LENGTH);
+    o->tx_data.kernel_nonce.y = peer_nonce_y;
+
+    const uint32_t nonce_slot = mp_obj_get_int(args[8]);
+    if (! is_valid_nonce_slot(nonce_slot))
+        return mp_obj_new_int(0);
+
+    o->tx_data.nonce_slot = nonce_slot;
+
+    mp_buffer_info_t offset;
+    mp_get_buffer_raise(args[9], &offset, MP_BUFFER_READ);
+
+    scalar_t sk_offset;
+    scalar_import_nnz(&sk_offset, (const uint8_t*)offset.buf);
+
+    // Parameters accepted
+    return mp_obj_new_int(1);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_transaction_maker_set_transaction_data_obj, 10, 10, mod_trezorcrypto_beam_transaction_maker_set_transaction_data);
 
 /// class KeyIDV:
 ///     '''
@@ -186,6 +307,11 @@ STATIC mp_obj_t mod_trezorcrypto_beam_key_idv_set(size_t n_args, const mp_obj_t*
     o->kidv.id.type = type;
     o->kidv.id.sub_idx = sub_idx;
     o->kidv.value = value;
+    //printf("Id: %ld; type: %d; sub_idx: %d; value: %ld\n",
+    //       o->kidv.id.idx,
+    //       o->kidv.id.type,
+    //       o->kidv.id.sub_idx,
+    //       o->kidv.value);
 
     return mp_const_none;
 }
@@ -607,6 +733,9 @@ STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_transaction_maker_locals_di
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&mod_trezorcrypto_beam_key_idv___del___obj) },
     { MP_ROM_QSTR(MP_QSTR_add_input), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_add_input_obj) },
     { MP_ROM_QSTR(MP_QSTR_add_output), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_add_output_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_transaction_data), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_set_transaction_data_obj) },
+    { MP_ROM_QSTR(MP_QSTR_sign_transaction_part_1), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_1_obj) },
+    { MP_ROM_QSTR(MP_QSTR_sign_transaction_part_2), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_2_obj) },
 };
 STATIC MP_DEFINE_CONST_DICT(mod_trezorcrypto_beam_transaction_maker_locals_dict, mod_trezorcrypto_beam_transaction_maker_locals_dict_table);
 

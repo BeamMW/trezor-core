@@ -9,7 +9,7 @@ class BeamECCPoint(p.MessageType):
     def __init__(
         self,
         x: bytes = None,
-        y: bytes = None,
+        y: bool = None,
     ) -> None:
         self.x = x
         self.y = y
@@ -18,5 +18,5 @@ class BeamECCPoint(p.MessageType):
     def get_fields(cls):
         return {
             1: ('x', p.BytesType, 0),
-            2: ('y', p.BytesType, 0),
+            2: ('y', p.BoolType, 0),
         }

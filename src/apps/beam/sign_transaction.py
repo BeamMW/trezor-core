@@ -4,26 +4,44 @@ from trezorcrypto import sha1
 from trezor.messages.BeamSignTransaction import BeamSignTransaction
 from trezor.messages.BeamSignedTransaction import BeamSignedTransaction
 
+from apps.common import storage
+from apps.beam.layout import *
+from apps.beam.nonce import get_nonce as consume_nonce
+
 async def sign_transaction(ctx, msg):
-    print(dir(beam))
-    print(dir(sha1))
-
     tm = beam.TransactionMaker()
-    kidv = beam.KeyIDV()
-    kidv.set(0, 1, 2, 3)
-    tm.add_input(kidv)
-    print(kidv)
+    tm.set_transaction_data(
+        msg.kernel_params.fee,
+        msg.kernel_params.min_height, msg.kernel_params.max_height,
+        msg.kernel_params.commitment.x, msg.kernel_params.commitment.y,
+        msg.kernel_params.multisig_nonce.x, msg.kernel_params.multisig_nonce.y,
+        msg.nonce_slot,
+        msg.offset_sk)
 
-    return BeamSignedTransaction(signature=bytearray(10))
+    #print("Inputs:")
+    for input in msg.inputs:
+        kidv = beam.KeyIDV()
+        kidv.set(input.idx, input.type, input.sub_idx, input.value)
+        tm.add_input(kidv)
 
+    #print("Outputs:")
+    for output in msg.outputs:
+        kidv = beam.KeyIDV()
+        kidv.set(output.idx, output.type, output.sub_idx, output.value)
+        tm.add_output(kidv)
 
-class Transaction:
-    def __init__(
-        self,
-        inputs: list,
-        outputs: list,
-        transactions: list,
-        keychain,
-        protocol_magic: int,
-    ):
-        pass
+    mnemonic = storage.get_mnemonic()
+    seed = beam.phrase_to_seed(mnemonic)
+    sk_total = bytearray(32)
+
+    value_transferred = tm.sign_transaction_part_1(seed, sk_total)
+
+    await beam_confirm_message(ctx, 'Value transferred: ', str(value_transferred), False)
+
+    signature = bytearray(32)
+    nonce = consume_nonce(msg.nonce_slot)
+    nonce = consume_nonce(msg.nonce_slot)
+    is_signed = tm.sign_transaction_part_2(sk_total, nonce, signature)
+
+    return BeamSignedTransaction(signature=signature)
+
