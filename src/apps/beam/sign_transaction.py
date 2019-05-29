@@ -1,12 +1,11 @@
 from trezor.crypto import beam
-from trezorcrypto import sha1
 
 from trezor.messages.BeamSignTransaction import BeamSignTransaction
 from trezor.messages.BeamSignedTransaction import BeamSignedTransaction
 
 from apps.common import storage
 from apps.beam.layout import *
-from apps.beam.nonce import get_nonce as consume_nonce
+from apps.beam.nonce import consume_nonce
 
 async def sign_transaction(ctx, msg):
     tm = beam.TransactionMaker()
@@ -36,10 +35,10 @@ async def sign_transaction(ctx, msg):
 
     value_transferred = tm.sign_transaction_part_1(seed, sk_total)
 
-    await beam_confirm_message(ctx, 'Value transferred: ', str(value_transferred), False)
+    tx_action_message = 'RECEIVE' if value_transferred <= 0 else 'TRANSFER'
+    await beam_confirm_message(ctx, tx_action_message + ': ', str(abs(value_transferred)), False)
 
     signature = bytearray(32)
-    nonce = consume_nonce(msg.nonce_slot)
     nonce = consume_nonce(msg.nonce_slot)
     is_signed = tm.sign_transaction_part_2(sk_total, nonce, signature)
 

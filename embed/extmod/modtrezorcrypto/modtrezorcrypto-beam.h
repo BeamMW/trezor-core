@@ -178,7 +178,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_1(
     HKdf_t kdf;
     get_HKdf(0, (uint8_t*)seed.buf, &kdf);
 
-    uint64_t value_transferred = 0;
+    int64_t value_transferred = 0;
 
     scalar_t sk_total;
     init_context();
@@ -186,7 +186,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_sign_transaction_part_1(
                             &o->inputs, &o->outputs, &o->tx_data,
                             &kdf);
     free_context();
-    //printf("Value transferred: %ld", value_transferred);
 
     mp_buffer_info_t sk_buf;
     mp_get_buffer_raise(out_sk_total, &sk_buf, MP_BUFFER_RW);
