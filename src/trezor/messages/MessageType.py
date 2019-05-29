@@ -199,3 +199,4 @@ BeamGenerateRangeproof = 712
 BeamRangeproofData = 713
 BeamSignTransaction = 714
 BeamSignedTransaction = 715
+BeamGetNoncePublic = 716
