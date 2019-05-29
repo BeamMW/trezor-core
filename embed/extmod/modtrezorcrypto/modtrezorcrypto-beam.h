@@ -665,17 +665,39 @@ STATIC mp_obj_t mod_trezorcrypto_beam_create_derived_nonce(size_t n_args, const 
     mp_buffer_info_t out_new_nonce;
     mp_get_buffer_raise(args[2], &out_new_nonce, MP_BUFFER_RW);
 
-    mp_buffer_info_t out_new_image;
-    mp_get_buffer_raise(args[3], &out_new_image, MP_BUFFER_RW);
-
     init_context();
-    create_derived_nonce((const uint8_t*)master_nonce.buf, idx, (uint8_t*)out_new_nonce.buf, (uint8_t*)out_new_image.buf);
+    create_derived_nonce((const uint8_t*)master_nonce.buf, idx, (uint8_t*)out_new_nonce.buf);
     free_context();
 
     return mp_const_none;
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_create_derived_nonce_obj, 4, 4, mod_trezorcrypto_beam_create_derived_nonce);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_create_derived_nonce_obj, 3, 3, mod_trezorcrypto_beam_create_derived_nonce);
+
+STATIC mp_obj_t mod_trezorcrypto_beam_get_nonce_public_key(
+    size_t n_args, const mp_obj_t* args) {
+    mp_buffer_info_t nonce;
+    mp_get_buffer_raise(args[0], &nonce, MP_BUFFER_READ);
+
+    // in type of point_t_x (uint8_t[32])
+    mp_buffer_info_t out_nonce_pub_x;
+    mp_get_buffer_raise(args[1], &out_nonce_pub_x, MP_BUFFER_RW);
+
+    // in type of point_t.y (uint8_t[1])
+    mp_buffer_info_t out_nonce_pub_y;
+    mp_get_buffer_raise(args[2], &out_nonce_pub_y, MP_BUFFER_RW);
+
+    init_context();
+    point_t intermediate_point;
+    get_nonce_public_key((const uint8_t*)nonce.buf, &intermediate_point);
+    memcpy(out_nonce_pub_x.buf, intermediate_point.x, 32);
+    memcpy(out_nonce_pub_y.buf, &intermediate_point.y, 1);
+    free_context();
+
+    return mp_const_none;
+}
+
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_get_nonce_public_key_obj, 3, 3, mod_trezorcrypto_beam_get_nonce_public_key);
 
 STATIC mp_obj_t mod_trezorcrypto_beam_generate_rp_from_key_idv(size_t n_args, const mp_obj_t* args) {
     uint64_t idx = mp_obj_get_uint64_beam(args[0]);
@@ -760,6 +782,7 @@ STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_generate_key), MP_ROM_PTR(&mod_trezorcrypto_beam_generate_key_obj) },
     { MP_ROM_QSTR(MP_QSTR_create_master_nonce), MP_ROM_PTR(&mod_trezorcrypto_beam_create_master_nonce_obj) },
     { MP_ROM_QSTR(MP_QSTR_create_derived_nonce), MP_ROM_PTR(&mod_trezorcrypto_beam_create_derived_nonce_obj) },
+    { MP_ROM_QSTR(MP_QSTR_get_nonce_public_key), MP_ROM_PTR(&mod_trezorcrypto_beam_get_nonce_public_key_obj) },
     { MP_ROM_QSTR(MP_QSTR_generate_rp_from_key_idv), MP_ROM_PTR(&mod_trezorcrypto_beam_generate_rp_from_key_idv_obj) },
     { MP_ROM_QSTR(MP_QSTR_KeyIDV), MP_ROM_PTR(&mod_trezorcrypto_beam_key_idv_type) },
     { MP_ROM_QSTR(MP_QSTR_TransactionMaker), MP_ROM_PTR(&mod_trezorcrypto_beam_transaction_maker_type) },
