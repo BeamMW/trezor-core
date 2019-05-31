@@ -10,7 +10,7 @@ from apps.common import storage
 async def generate_rangeproof(ctx, msg):
     asset_id = bytearray(0)
     #TODO: calc num bytes in rangeproof
-    rangeproof_data = bytearray(700)
+    rangeproof_data = bytearray(688)
 
     mnemonic = storage.get_mnemonic()
     seed = beam.phrase_to_seed(mnemonic)
@@ -20,3 +20,4 @@ async def generate_rangeproof(ctx, msg):
                                   rangeproof_data)
 
     return BeamRangeproofData(data=rangeproof_data, is_public=msg.is_public)
+
