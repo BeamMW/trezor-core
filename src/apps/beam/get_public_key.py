@@ -1,4 +1,4 @@
-from trezor.messages.BeamPublicKey import BeamPublicKey
+from trezor.messages.BeamECCPoint import BeamECCPoint
 
 from apps.common import layout
 from apps.beam.helpers import (
@@ -15,4 +15,4 @@ async def get_public_key(ctx, msg):
     if msg.show_display:
         await layout.show_pubkey(ctx, pubkey_y)
 
-    return BeamPublicKey(pub_x=pubkey_x, pub_y=pubkey_y)
+    return BeamECCPoint(x=pubkey_x, y=pubkey_y)

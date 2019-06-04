@@ -1,5 +1,5 @@
 from trezor.messages.BeamGetNoncePublic import BeamGetNoncePublic
-from trezor.messages.BeamPublicKey import BeamPublicKey
+from trezor.messages.BeamECCPoint import BeamECCPoint
 from trezor.messages.Failure import Failure
 
 from apps.beam.nonce import *
@@ -16,4 +16,4 @@ async def get_nonce_public(ctx, msg):
         return Failure(message='Nonce Generator is not initialized')
 
     pubkey_x, pubkey_y = get_nonce_pub(msg.slot)
-    return BeamPublicKey(pub_x=pubkey_x, pub_y=pubkey_y)
+    return BeamECCPoint(x=pubkey_x, y=pubkey_y)

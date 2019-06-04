@@ -1,7 +1,7 @@
 from trezor.crypto import beam
 
 from trezor.messages.BeamGenerateKey import BeamGenerateKey
-from trezor.messages.BeamPublicKey import BeamPublicKey
+from trezor.messages.BeamECCPoint import BeamECCPoint
 
 from apps.common import storage
 
@@ -17,4 +17,4 @@ async def generate_key(ctx, msg):
                       msg.is_coin_key, seed,
                       key_image_x, key_image_x)
 
-    return BeamPublicKey(pub_x=key_image_x, pub_y=key_image_y)
+    return BeamECCPoint(x=key_image_x, y=key_image_y)

@@ -20,7 +20,7 @@ from trezor.crypto import random
 from apps.beam.helpers import get_beam_pk
 from apps.beam.sign_message import sign_message
 from apps.beam.verify_message import verify_message
-from trezor.messages.BeamPublicKey import BeamPublicKey
+from trezor.messages.BeamECCPoint import BeamECCPoint
 import utime
 
 def hex_str_to_bytearray(hex_data, name='', print_info=False):
@@ -67,7 +67,7 @@ def test_owner_key(ctx, msg):
     await beam_confirm_message(ctx, 'Bench', text, False)
 
     pk_x, pk_y = get_beam_pk()
-    public_key = BeamPublicKey(pub_x=pk_x, pub_y=pk_y)
+    public_key = BeamECCPoint(x=pk_x, y=pk_y)
     msg.message = msg.msg
     msg.public_key = public_key
     msg.signature = sign_msg.signature

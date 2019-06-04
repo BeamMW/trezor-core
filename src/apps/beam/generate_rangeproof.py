@@ -9,7 +9,6 @@ from apps.common import storage
 
 async def generate_rangeproof(ctx, msg):
     asset_id = bytearray(0)
-    #TODO: calc num bytes in rangeproof
     rangeproof_data = bytearray(688)
 
     mnemonic = storage.get_mnemonic()

@@ -514,7 +514,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
     //void signature_sign(const uint8_t *msg32, const scalar_t *sk, const secp256k1_gej *generator_pts, secp256k1_gej *out_nonce_pub, scalar_t *out_k)
     ecc_signature_t signature;
     signature_sign((const uint8_t*)msg32.buf, &scalar_sk, get_context()->generator.G_pts, &signature);
-    printf(" Internal! ---- out_nonce_pub  %d\n", (int)signature.nonce_pub.x.n[0]);
     // Export scalar
     // Write data into raw pointer instead of scalar type
     scalar_get_b32((uint8_t*)out_k.buf, &signature.k);
