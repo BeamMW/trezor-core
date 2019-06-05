@@ -27,13 +27,11 @@ def get_beam_kdf():
     beam.seed_to_kdf(seed, seed_size, secret_key, cofactor)
     return (secret_key, cofactor)
 
-def get_beam_sk():
+def get_beam_sk(kid_idx, kid_sub_idx=0):
     # Generate hash id
-    a_id = 123456
-    a_type = BBS_KEY()
-    sub_idx = 0
+    kid_type = BBS_KEY()
     hash_id = bytearray(32)
-    beam.generate_hash_id(a_id, a_type, sub_idx, hash_id)
+    beam.generate_hash_id(kid_idx, kid_type, kid_sub_idx, hash_id)
     # Get kdf
     secret_key, cofactor = get_beam_kdf()
     # Derive key
@@ -42,11 +40,11 @@ def get_beam_sk():
 
     return res_sk
 
-def get_beam_pk():
+def get_beam_pk(kid_idx, kid_sub_idx=0):
     # Secret key to public key
     public_key_x = bytearray(32)
     public_key_y = bytearray(1)
-    sk = get_beam_sk()
+    sk = get_beam_sk(kid_idx, kid_sub_idx)
     beam.secret_key_to_public_key(sk, public_key_x, public_key_y)
 
     return (public_key_x, public_key_y)

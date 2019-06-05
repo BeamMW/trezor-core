@@ -6,7 +6,6 @@ from trezor.messages.BeamPublicKey import BeamPublicKey
 
 from apps.beam.helpers import (
     bin_to_str,
-    get_beam_sk,
     is_valid_beam_message,
 )
 from apps.beam.sign_message import message_digest

@@ -8,7 +8,7 @@ from apps.beam.helpers import (
 
 
 async def get_public_key(ctx, msg):
-    pubkey_x, pubkey_y = get_beam_pk()
+    pubkey_x, pubkey_y = get_beam_pk(msg.kid_idx, msg.kid_sub_idx)
 
     if msg.show_display:
         await layout.show_pubkey(ctx, pubkey_x)

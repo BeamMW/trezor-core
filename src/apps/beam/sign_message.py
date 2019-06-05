@@ -18,7 +18,6 @@ def message_digest(message):
     h.extend(str(len(message)))
     h.extend(message)
     return sha256(h.get_digest()).digest()
-    #return h.get_digest()
 
 
 async def sign_message(ctx, msg):
@@ -28,7 +27,7 @@ async def sign_message(ctx, msg):
     sign_nonce_pub_y = bytearray(1)
     sign_k = bytearray(32)
 
-    sk = get_beam_sk()
+    sk = get_beam_sk(msg.kid_idx, msg.kid_sub_idx)
     digest = message_digest(msg.msg)
     beam.signature_sign(digest, sk, sign_nonce_pub_x, sign_nonce_pub_y, sign_k)
     is_valid_msg = 'Sign_x: {}; Sign_y: {}; Sign_k: {}'.format(sign_nonce_pub_x,

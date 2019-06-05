@@ -262,8 +262,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_transaction_maker_set_transaction_data(siz
     mp_buffer_info_t offset;
     mp_get_buffer_raise(args[9], &offset, MP_BUFFER_READ);
 
-    scalar_t sk_offset;
-    scalar_import_nnz(&sk_offset, (const uint8_t*)offset.buf);
+    scalar_import_nnz(&o->tx_data.offset, (const uint8_t*)offset.buf);
 
     // Parameters accepted
     return mp_obj_new_int(1);
@@ -477,7 +476,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_secret_key_to_public_key(mp_obj_t secret_k
     mp_buffer_info_t pk_y;
     mp_get_buffer_raise(public_key_y, &pk_y, MP_BUFFER_RW);
 
-    //TODO<Kirill>: call it once on device initialization
     init_context();
     secp256k1_gej pk;
     generator_mul_scalar(&pk, get_context()->generator.G_pts, &scalar_sk);
@@ -509,7 +507,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
     mp_buffer_info_t out_k;
     mp_get_buffer_raise(args[4], &out_k, MP_BUFFER_RW);
 
-    //TODO<Kirill>: call it once on device initialization
     init_context();
     //void signature_sign(const uint8_t *msg32, const scalar_t *sk, const secp256k1_gej *generator_pts, secp256k1_gej *out_nonce_pub, scalar_t *out_k)
     ecc_signature_t signature;
@@ -614,7 +611,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_generate_key(size_t n_args, const mp_obj_t
     kidv.id.sub_idx = sub_idx;
     kidv.value = value;
 
-    //TODO<Kirill>: call it once on device initialization
     init_context();
 
     mp_buffer_info_t seed;
