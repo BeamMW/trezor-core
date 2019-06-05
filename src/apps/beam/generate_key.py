@@ -17,4 +17,4 @@ async def generate_key(ctx, msg):
                       msg.is_coin_key, seed,
                       key_image_x, key_image_x)
 
-    return BeamECCPoint(x=key_image_x, y=key_image_y)
+    return BeamECCPoint(x=key_image_x, y=int(key_image_y[0]))

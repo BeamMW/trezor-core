@@ -16,4 +16,4 @@ async def get_nonce_public(ctx, msg):
         return Failure(message='Nonce Generator is not initialized')
 
     pubkey_x, pubkey_y = get_nonce_pub(msg.slot)
-    return BeamECCPoint(x=pubkey_x, y=pubkey_y)
+    return BeamECCPoint(x=pubkey_x, y=int(pubkey_y[0]))
