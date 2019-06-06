@@ -47,11 +47,12 @@ def get_beam_pk(kid_idx, kid_sub_idx=0):
     sk = get_beam_sk(kid_idx, kid_sub_idx)
     beam.secret_key_to_public_key(sk, public_key_x, public_key_y)
 
-    return (public_key_x, public_key_y)
+    return (public_key_x, int(public_key_y[0]))
 
-def is_valid_beam_message(signature, pk_x, pk_y, message):
+def is_valid_beam_message(signature, public_key, message):
     is_valid = beam.is_valid_signature(message,
-                                       signature.nonce_pub_x, signature.nonce_pub_y,
-                                       signature.sign_k, pk_x, pk_y)
+                                       signature.nonce_pub.x, int(signature.nonce_pub.y),
+                                       signature.sign_k,
+                                       public_key.x, int(public_key.y))
 
     return is_valid

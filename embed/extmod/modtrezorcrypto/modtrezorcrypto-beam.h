@@ -334,56 +334,25 @@ static void gej_to_xy_bufs(secp256k1_gej* group_point, uint8_t* x_buf, uint8_t* 
 
     // Copy contents to out buffer
     memcpy(x_buf, intermediate_point_t.x, 32);
-    //TODO: memset() instead?
     *y_buf = intermediate_point_t.y;
 }
 
-/// def hello_crypto_world() -> int:
-///     '''
-///     Hello from BEAM's crypto world
-///     '''
-STATIC mp_obj_t mod_trezorcrypto_beam_hello_crypto_world(void) {
-    init_context();
-    test_tx_kernel();
-    free_context();
-
-    int code = get_beam_hello();
-    printf("Hello from Beam with code: %d", code);
-    return mp_obj_new_int(code);
-}
-
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(mod_trezorcrypto_beam_hello_crypto_world_obj, mod_trezorcrypto_beam_hello_crypto_world);
-
-/// def seed(mnemonic: str, passphrase: str=None, callback: (int, int -> None)=None) -> bytes:
+/// def seed(mnemonic: str) -> bytes:
 ///     '''
 ///     Generate BEAM seed from mnemonic and passphrase.
 ///     '''
-STATIC mp_obj_t mod_trezorcrypto_beam_phrase_to_seed(size_t n_args, const mp_obj_t* args) {
+STATIC mp_obj_t mod_trezorcrypto_beam_phrase_to_seed(const mp_obj_t mnemonic) {
     mp_buffer_info_t mnemo;
 
-    //TODO
-    //mp_buffer_info_t phrase;
-
-    mp_get_buffer_raise(args[0], &mnemo, MP_BUFFER_READ);
+    mp_get_buffer_raise(mnemonic, &mnemo, MP_BUFFER_READ);
     uint8_t seed[32];
     const char* pmnemonic = mnemo.len > 0 ? mnemo.buf : "";
-    //TODO
-    //const char *ppassphrase = phrase.len > 0 ? phrase.buf : "";
+    phrase_to_seed(pmnemonic, seed);
 
-    if (n_args > 2) {
-        //TODO
-        //// generate with a progress callback
-        //ui_wait_callback = args[2];
-        //beam_mnemonic_to_seed(pmnemonic, ppassphrase, seed, wrapped_ui_wait_callback);
-        //ui_wait_callback = mp_const_none;
-    } else {
-        // generate without callback
-        phrase_to_seed(pmnemonic, seed);
-    }
     return mp_obj_new_bytes(seed, sizeof(seed));
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_phrase_to_seed_obj, 1, 3, mod_trezorcrypto_beam_phrase_to_seed);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_trezorcrypto_beam_phrase_to_seed_obj, mod_trezorcrypto_beam_phrase_to_seed);
 
 /// def generate_hash_id(idx: int, type: int, sub_idx: int, out32: bytes):
 ///     '''
@@ -394,7 +363,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_generate_hash_id(size_t n_args, const mp_o
     uint32_t type = mp_obj_get_int(args[1]);
     uint32_t sub_idx = mp_obj_get_int(args[2]);
 
-    //uint8_t* out32 = (uint8_t*)arg_out32;
     mp_buffer_info_t out32;
     mp_get_buffer_raise(args[3], &out32, MP_BUFFER_RW);
 
@@ -508,7 +476,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
     mp_get_buffer_raise(args[4], &out_k, MP_BUFFER_RW);
 
     init_context();
-    //void signature_sign(const uint8_t *msg32, const scalar_t *sk, const secp256k1_gej *generator_pts, secp256k1_gej *out_nonce_pub, scalar_t *out_k)
     ecc_signature_t signature;
     signature_sign((const uint8_t*)msg32.buf, &scalar_sk, get_context()->generator.G_pts, &signature);
     // Export scalar
@@ -522,7 +489,6 @@ STATIC mp_obj_t mod_trezorcrypto_beam_signature_sign(size_t n_args, const mp_obj
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_signature_sign_obj, 5, 5, mod_trezorcrypto_beam_signature_sign);
 
-//int signature_is_valid(const uint8_t *msg32, const secp256k1_gej *nonce_pub, const scalar_t *k, const secp256k1_gej *pk, const secp256k1_gej *generator_pts);
 STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp_obj_t* args) {
     mp_buffer_info_t msg32;
     mp_get_buffer_raise(args[0], &msg32, MP_BUFFER_READ);
@@ -532,12 +498,11 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
     mp_buffer_info_t nonce_pub_x;
     mp_get_buffer_raise(args[1], &nonce_pub_x, MP_BUFFER_READ);
     // y part
-    mp_buffer_info_t nonce_pub_y;
-    mp_get_buffer_raise(args[2], &nonce_pub_y, MP_BUFFER_READ);
+    const uint8_t nonce_pub_y = mp_obj_get_int(args[2]);
     // Convert nonce pub from two parts to point t
     point_t nonce_pub_point;
     memcpy(nonce_pub_point.x, nonce_pub_x.buf, 32);
-    nonce_pub_point.y = *((int*)nonce_pub_y.buf);
+    nonce_pub_point.y = nonce_pub_y;
     // Convert point t to secp256k1_gej nonce pub
     ecc_signature_t signature;
     point_import_nnz(&signature.nonce_pub, &nonce_pub_point);
@@ -549,17 +514,15 @@ STATIC mp_obj_t mod_trezorcrypto_beam_is_valid_signature(size_t n_args, const mp
 
     mp_buffer_info_t pk_x;
     mp_get_buffer_raise(args[4], &pk_x, MP_BUFFER_READ);
-    mp_buffer_info_t pk_y;
-    mp_get_buffer_raise(args[5], &pk_y, MP_BUFFER_READ);
+    const uint8_t pk_y = mp_obj_get_int(args[5]);
     point_t pk_point;
-    // Copy contents to out buffer
     memcpy(pk_point.x, pk_x.buf, 32);
-    pk_point.y = *((int*)pk_y.buf);
+    pk_point.y = pk_y;
     secp256k1_gej pk_gej;
     point_import_nnz(&pk_gej, &pk_point);
 
     init_context();
-    int is_valid = signature_is_valid((const uint8_t*)msg32.buf, &signature, &pk_gej, get_context()->generator.G_pts);
+    const int is_valid = signature_is_valid((const uint8_t*)msg32.buf, &signature, &pk_gej, get_context()->generator.G_pts);
     free_context();
 
     return mp_obj_new_int(is_valid);
@@ -764,7 +727,6 @@ STATIC const mp_obj_type_t mod_trezorcrypto_beam_transaction_maker_type = {
 
 STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_beam) },
-    { MP_ROM_QSTR(MP_QSTR_hello_crypto_world), MP_ROM_PTR(&mod_trezorcrypto_beam_hello_crypto_world_obj) },
     { MP_ROM_QSTR(MP_QSTR_phrase_to_seed), MP_ROM_PTR(&mod_trezorcrypto_beam_phrase_to_seed_obj) },
     { MP_ROM_QSTR(MP_QSTR_generate_hash_id), MP_ROM_PTR(&mod_trezorcrypto_beam_generate_hash_id_obj) },
     { MP_ROM_QSTR(MP_QSTR_seed_to_kdf), MP_ROM_PTR(&mod_trezorcrypto_beam_seed_to_kdf_obj) },

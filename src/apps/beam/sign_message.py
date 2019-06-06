@@ -2,8 +2,8 @@ from trezor.crypto import beam
 from trezor.crypto.hashlib import sha256
 from trezor.utils import HashWriter
 
-from trezor.messages.BeamSignedMessage import BeamSignedMessage
 from trezor.messages.BeamSignature import BeamSignature
+from trezor.messages.BeamECCPoint import BeamECCPoint
 
 from apps.beam.helpers import (
     bin_to_str,
@@ -39,7 +39,5 @@ async def sign_message(ctx, msg):
             if await require_validate_sign_message(ctx, is_valid_msg):
                 break
 
-    signature = BeamSignature(nonce_pub_x=sign_nonce_pub_x, nonce_pub_y=sign_nonce_pub_y, sign_k=sign_k)
+    return BeamSignature(nonce_pub=BeamECCPoint(x=sign_nonce_pub_x, y=int(sign_nonce_pub_y[0])), sign_k=sign_k)
 
-    res = BeamSignedMessage(signature)
-    return res

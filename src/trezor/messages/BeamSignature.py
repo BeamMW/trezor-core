@@ -2,23 +2,23 @@
 # fmt: off
 import protobuf as p
 
+from .BeamECCPoint import BeamECCPoint
+
 
 class BeamSignature(p.MessageType):
+    MESSAGE_WIRE_TYPE = 703
 
     def __init__(
         self,
-        nonce_pub_x: bytes = None,
-        nonce_pub_y: bytes = None,
+        nonce_pub: BeamECCPoint = None,
         sign_k: bytes = None,
     ) -> None:
-        self.nonce_pub_x = nonce_pub_x
-        self.nonce_pub_y = nonce_pub_y
+        self.nonce_pub = nonce_pub
         self.sign_k = sign_k
 
     @classmethod
     def get_fields(cls):
         return {
-            1: ('nonce_pub_x', p.BytesType, 0),
-            2: ('nonce_pub_y', p.BytesType, 0),
-            3: ('sign_k', p.BytesType, 0),
+            1: ('nonce_pub', BeamECCPoint, 0),
+            2: ('sign_k', p.BytesType, 0),
         }

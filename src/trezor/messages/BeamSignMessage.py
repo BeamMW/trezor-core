@@ -9,14 +9,20 @@ class BeamSignMessage(p.MessageType):
     def __init__(
         self,
         msg: str = None,
+        kid_idx: int = None,
+        kid_sub_idx: int = None,
         show_display: bool = None,
     ) -> None:
         self.msg = msg
+        self.kid_idx = kid_idx
+        self.kid_sub_idx = kid_sub_idx
         self.show_display = show_display
 
     @classmethod
     def get_fields(cls):
         return {
             1: ('msg', p.UnicodeType, 0),
-            2: ('show_display', p.BoolType, 0),
+            2: ('kid_idx', p.UVarintType, 0),
+            3: ('kid_sub_idx', p.UVarintType, 0),
+            4: ('show_display', p.BoolType, 0),
         }

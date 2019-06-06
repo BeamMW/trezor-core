@@ -8,12 +8,18 @@ class BeamGetPublicKey(p.MessageType):
 
     def __init__(
         self,
+        kid_idx: int = None,
+        kid_sub_idx: int = None,
         show_display: bool = None,
     ) -> None:
+        self.kid_idx = kid_idx
+        self.kid_sub_idx = kid_sub_idx
         self.show_display = show_display
 
     @classmethod
     def get_fields(cls):
         return {
-            1: ('show_display', p.BoolType, 0),
+            1: ('kid_idx', p.UVarintType, 0),
+            2: ('kid_sub_idx', p.UVarintType, 0),
+            3: ('show_display', p.BoolType, 0),
         }
