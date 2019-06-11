@@ -337,11 +337,11 @@ static void gej_to_xy_bufs(secp256k1_gej* group_point, uint8_t* x_buf, uint8_t* 
     *y_buf = intermediate_point_t.y;
 }
 
-/// def seed(mnemonic: str) -> bytes:
+/// def from_mnemonic_beam(mnemonic: str) -> bytes:
 ///     '''
 ///     Generate BEAM seed from mnemonic and passphrase.
 ///     '''
-STATIC mp_obj_t mod_trezorcrypto_beam_phrase_to_seed(const mp_obj_t mnemonic) {
+STATIC mp_obj_t mod_trezorcrypto_beam_from_mnemonic_beam(const mp_obj_t mnemonic) {
     mp_buffer_info_t mnemo;
 
     mp_get_buffer_raise(mnemonic, &mnemo, MP_BUFFER_READ);
@@ -352,7 +352,7 @@ STATIC mp_obj_t mod_trezorcrypto_beam_phrase_to_seed(const mp_obj_t mnemonic) {
     return mp_obj_new_bytes(seed, sizeof(seed));
 }
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_trezorcrypto_beam_phrase_to_seed_obj, mod_trezorcrypto_beam_phrase_to_seed);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(mod_trezorcrypto_beam_from_mnemonic_beam_obj, mod_trezorcrypto_beam_from_mnemonic_beam);
 
 /// def generate_hash_id(idx: int, type: int, sub_idx: int, out32: bytes):
 ///     '''
@@ -727,7 +727,7 @@ STATIC const mp_obj_type_t mod_trezorcrypto_beam_transaction_maker_type = {
 
 STATIC const mp_rom_map_elem_t mod_trezorcrypto_beam_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_beam) },
-    { MP_ROM_QSTR(MP_QSTR_phrase_to_seed), MP_ROM_PTR(&mod_trezorcrypto_beam_phrase_to_seed_obj) },
+    { MP_ROM_QSTR(MP_QSTR_from_mnemonic_beam), MP_ROM_PTR(&mod_trezorcrypto_beam_from_mnemonic_beam_obj) },
     { MP_ROM_QSTR(MP_QSTR_generate_hash_id), MP_ROM_PTR(&mod_trezorcrypto_beam_generate_hash_id_obj) },
     { MP_ROM_QSTR(MP_QSTR_seed_to_kdf), MP_ROM_PTR(&mod_trezorcrypto_beam_seed_to_kdf_obj) },
     { MP_ROM_QSTR(MP_QSTR_derive_child_key), MP_ROM_PTR(&mod_trezorcrypto_beam_derive_child_key_obj) },

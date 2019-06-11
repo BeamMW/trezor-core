@@ -11,7 +11,7 @@ async def generate_key(ctx, msg):
     key_image_y = bytearray(1)
 
     mnemonic = storage.get_mnemonic()
-    seed = beam.phrase_to_seed(mnemonic)
+    seed = beam.from_mnemonic_beam(mnemonic)
 
     beam.generate_key(msg.kidv.idx, msg.kidv.type, msg.kidv.sub_idx, msg.kidv.value,
                       msg.is_coin_key, seed,

@@ -30,7 +30,7 @@ async def sign_transaction(ctx, msg):
         tm.add_output(kidv)
 
     mnemonic = storage.get_mnemonic()
-    seed = beam.phrase_to_seed(mnemonic)
+    seed = beam.from_mnemonic_beam(mnemonic)
     sk_total = bytearray(32)
 
     value_transferred = tm.sign_transaction_part_1(seed, sk_total)
