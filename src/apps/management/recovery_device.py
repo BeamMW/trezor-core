@@ -17,6 +17,7 @@ from trezor.utils import format_ordinal
 from apps.common import storage
 from apps.common.confirm import require_confirm
 from apps.management.change_pin import request_pin_confirm
+from apps.beam.nonce import create_master_nonce
 
 
 async def recovery_device(ctx, msg):
