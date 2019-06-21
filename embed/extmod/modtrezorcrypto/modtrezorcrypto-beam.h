@@ -399,13 +399,11 @@ STATIC mp_obj_t mod_trezorcrypto_beam_seed_to_kdf(size_t n_args, const mp_obj_t*
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_trezorcrypto_beam_seed_to_kdf_obj, 4, 4, mod_trezorcrypto_beam_seed_to_kdf);
 
-//void derive_key(const uint8_t *parent, uint8_t parent_size, const uint8_t *hash_id, uint8_t id_size, const scalar_t *cof_sk, scalar_t *out_res_sk);
 STATIC mp_obj_t mod_trezorcrypto_beam_derive_child_key(size_t n_args, const mp_obj_t* args) {
     mp_buffer_info_t parent;
     mp_get_buffer_raise(args[0], &parent, MP_BUFFER_READ);
 
     uint8_t parent_size = mp_obj_get_int(args[1]);
-    printf("parent size!: %d\n", parent_size);
 
     mp_buffer_info_t hash_id;
     mp_get_buffer_raise(args[2], &hash_id, MP_BUFFER_READ);
