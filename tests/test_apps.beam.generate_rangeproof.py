@@ -1,0 +1,80 @@
+from common import *
+
+from trezor.crypto import beam
+
+from apps.beam.helpers import (
+    bin_to_str,
+)
+
+class TestBeamGenerateRangeproof(unittest.TestCase):
+    mnemonic = "all all all all all all all all all all all all"
+    seed = beam.from_mnemonic_beam(mnemonic)
+
+    def test_generate_rangeproof(self):
+        test_datasets = (
+            # Test params:
+            # (
+            #     KIDV.idx, KIDV.type, KIDV.sub_idx, KIDV.value
+            #     is_public_rangeproof,
+            #     expected rangeproof
+            # )
+            (
+                1, 2, 3, 4,
+                False,
+                "e07b3fb5f3fa1b3fd2cf7e7043f12c437489c16eb572ee31c610772edeb5fe2401c3333f901a2beb862b4858d59f7aea4b0978d396cae16cd4a5bf97c3d7a48e1101370595d1cfd3d9d0\
+c248201e0569e3d175307aed63469dfe88741eca987e2e92008a2b60ed7746521ebe0784fa4d3a1c8e0f6d2ca59e225606dfcb206fd3ca540d01eaee702c0386aecd90de51f7bf677636eea3e77daebdd0ffe048c7310dfba39634a3b7950df5a07b0\
+9f369cafa36045a9c7b3eb0ba62ed1600144c2c6b642cd3017221e36d63e893b3cba4cad4ae75329c1ad7465f4539c417786f96c3b0a9b8b700b33a82e8fdfa567be82a522ffa5a6ff810b5cbe072da60b51b495fd8fcf1b545007067d5d675a1f8de\
+e702eda543add2cf73ea153b2fe9bc04d87e28cfe2cf3bb101cf83a6b128e12f3aa93fe3a57e8330bd0f700101d4beeb1d0a1a3a8fdc6727550052211d9195f915a525c00c2555d61febfe8feb0f00595d09c098a0aa8ee1ac7600f802c3377e94867\
+2b0327e020ac9f2860d6e782521b86d2b8e44c7e0efeda7f50017987d6b726c825de7c926e7f03df0264b2b975bbd0aa38638e1fd6c4dca75c4016a3b8e38ab0b7a3dd274cb91c35f260bc548d6c86feec6d6b54159d148d4a47701af7f1c9c66a444\
+878bbc6e23e6ebe9ee3b9ae50fd196f24d354ecadd9b709714006e01cd51a3b3ffbd815b03d38f7133fc1c3b3eaf8111c3a55ee88c1f347308ff018a634bb909168791aa03b900574f0743fa561c5903d6294de7f9dcb83de811be01b661ca6b3b338\
+845ff3731a0b2013d97ac27675afa59430ac75789ecdd1b99ba0a61742398431bac828104bbdbde0005d31197155e7fc806684279e15efccff4d39d48f31b69f67eb93397f658f1939ec2090546fded37a966290bb33be92c36d54b7fa6dc7311a09c\
+854902d7ed5234523196f21fe3a0049176ae58b860fb48"
+            ),
+            (
+                1, 11, 111, 23110,
+                False,
+                "2a44fb6cd5e465062feabe88fcbe0405abceac90eb04ba8dd21aae5fc6b8030101bf68a61abd528e5123cf2821139e0aa7af9ba394d62d7a331d30018eaee089480040099bd3b5b88cc5\
+21f44e2678fc68915e2a02df949586170fcde177d3f3622d003f4a1c1156a36db094f83368bac9dd182c9071b624cbca1bb24d56c07652e0af0102484982a7eb5658c4af783b153f14b745992e09777bd7aa0ce27a0b4e448d01d4d9fc4646d2770a5\
+c5c518845c3d3c53dc5d508ce14c621579cb66d8d6abfac00671ca8265c997b592392198618e87ad6859d0597004cdf82d0faa7a6aa91bdcd00a503fa7c10f7a7be3fc2d5fc0cec75d17822d91478e0c1e3bacbde17684d7b4f001a59ba1dc30998d5\
+1c0cf97062961b54ef30b40ee456a9351fdde3599c46721e0020ead1bc51af8945b40efc1f030bc3c87e1bf08cb2d399a1fa6c2eeadacfd42d0085d0c32798b34fcb63d845c5bd16684de07154fbde3fc7cf99cee751a337256701544191757d83ab9\
+32616e9dc68c89cb1be955160144665999f2c82495701076f01acf7ff5607c0e062b4dd416346b78977243c1056c5d6e3313951455441b4bfdf00d1205d02f34e0567bcbf3f7576e85ea347448c934d8b625f9e8f40acd067434a016863ed6c8f9355\
+5012d6cd21ca19739b3abea4202064c3dcca76ad56bfc1b89f0030ae42a67ab7fcc002b50179d749ac83ab83f603f02a14813478a5f1962c8b5901216d8cf1698cf124230c0f9084580263258882b95040ef55386659a7bd69d51f016d4fd1843d9ef\
+f217aae60912576fcbada23203975b18adb3f38e94afe1d8894cd16a3e5afaa782262a3cbcef220d5ad8319187a2944afbcd594d263c91f682e16d6237baa9f38056891a4ffb632a255f706efb682625a2daeb7572b32f6f452da41432c1f0884a62c\
+4fdd20002fbe528cdb4f8f013b4ee5e8c6121f6d84a634"
+            ),
+            (
+                0, 0, 0, 3,
+                False,
+                "add55fb422565311a0940bcffb84d1a1fe5561263c41d0c5557fdb41bc62de0e00b2092f8aebf26c252f2e5609324286f6b1610c210b50bba4470e8e0f7606848401623c85504fe8f304\
+8a4b09e8cd0a4598fc93254cde0c94f7b715968b6839b53600cb97f1bdfd6b41067b4efe76b5947ce76e516ddf6084d61261756af57509357601ba79a0b663c95f18052210830879b4df37f8a8189904faebe3240dc80c070cdd1a6d5e0b3977391ce\
+86a04f074e516a49a966ac643d1eaa0d5a8fc7d0e90a277012243a36f4371bdea88ca00ee93fc2c65a8560a2b86f4b8ee0bc1c9554cbedbf600dd8df58a0c597690cd2522de3050f91de468107b2fd8648809bda83ba8906c8200b1d53e520b95c550\
+9a2c187aac9c4e5fe19818284aa6f3290235625cc42fa58f005897395bcea77fdf19ac9968d7aca3616e4bd9ba5e21a2bfb2b5e51ea97e1a1d01577b3b11157704aa04605fb0b0de333265a94c90a9845571df3a77539ab0844600b65c2cdb251007b\
+abe4ca1d801d8e7510eac96b369d81b5f5432df813409f2cb00dbb7e21ac6fd63262b3cbc14e082d9c9b673c35610ca4281b6b845bea689ad9f01e91a04ec84db0137db45ba551f247d7aede1107a8e647100173a01d9f64fed0600190a7bb6ea372f\
+465c824593ff95620e66addc4d66f8eccee7f446406147855c01dfc1a43a0932b72cdcbbbca6cfc66f7ab8d4b4375bc5f22396a3e7a18d0e52f801a1600c2dc61ddd457a5045e87d2f7b213f11258a484b36d2f2cd1c32486c21690109ee889d59db3\
+faef2ccf3e3312a37721f46408aa0adfb08f44202a66719e2910b25b7c51d57f6660ee0f497159ffd4e1ddace2c333c2f7b03eb0d90f86470e4b752c640446cd676b477a04e63a616e3bd196807326d00280fc183acdb21fd072d189da43bed8166e5\
+1d3cae7650c64a43a0674ec9e63ea94045f7862618eb38"
+            ),
+        )
+
+        for test_params in test_datasets:
+            kid_idx = test_params[0]
+            kid_type = test_params[1]
+            kid_sub_idx = test_params[2]
+            kid_value = test_params[3]
+            is_public_rangeproof = int(test_params[4])
+            expected_rangeproof = test_params[5]
+
+            is_public_rangeproof = 0
+            asset_id = bytearray(0)
+            rangeproof_data = bytearray(688)
+            print(bin_to_str(self.seed))
+            beam.generate_rp_from_key_idv(kid_idx, kid_type, kid_sub_idx, kid_value,
+                                          asset_id, is_public_rangeproof, self.seed,
+                                          rangeproof_data)
+
+            self.assertEqual(bin_to_str(rangeproof_data), expected_rangeproof)
+
+
+if __name__ == '__main__':
+    unittest.main()
+

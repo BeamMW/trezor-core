@@ -4,17 +4,16 @@ from trezor.crypto import beam
 
 from apps.beam.helpers import (
     bin_to_str,
-    get_beam_pk,
-    is_valid_beam_message,
 )
 from apps.beam.nonce import *
 from trezor.pin import pin_to_int
-from trezor.messages.BeamECCPoint import BeamECCPoint
+
 
 def __init_and_unlock_config():
     config.init()
     config.wipe()
     config.unlock(pin_to_int(''))
+
 
 class TestBeamGenerateNonce(unittest.TestCase):
     mnemonic = "all all all all all all all all all all all all"
