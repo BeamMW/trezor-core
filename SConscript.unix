@@ -5,14 +5,19 @@ import os
 CCFLAGS_MOD = ''
 CPPPATH_MOD = []
 CPPDEFINES_MOD = []
+SOURCE_MOD_SECP256K1_ZKP = []
 SOURCE_MOD = []
 LIBS_MOD = []
 
 # modtrezorconfig
+CPPPATH_MOD += [
+    'embed/extmod/modtrezorconfig',
+    'vendor/trezor-storage',
+]
 SOURCE_MOD += [
     'embed/extmod/modtrezorconfig/modtrezorconfig.c',
-    'embed/extmod/modtrezorconfig/norcow.c',
-    'embed/extmod/modtrezorconfig/storage.c',
+    'vendor/trezor-storage/norcow.c',
+    'vendor/trezor-storage/storage.c',
 ]
 
 # modtrezorcrypto
@@ -23,7 +28,6 @@ CPPPATH_MOD += [
 CPPDEFINES_MOD += [
     'AES_128',
     'AES_192',
-    ('USE_BIP39_CACHE', '0'),
     ('USE_KECCAK', '1'),
     ('USE_ETHEREUM', '1'),
     ('USE_BEAM', '1'),
@@ -99,6 +103,31 @@ SOURCE_MOD += [
     'vendor/trezor-crypto/nem.c',
 ]
 
+# libsecp256k1-zkp
+CPPPATH_MOD += [
+    'vendor/secp256k1-zkp/',
+    'vendor/secp256k1-zkp/src',
+    'vendor/secp256k1-zkp/include',
+]
+CPPDEFINES_MOD += [
+    'SECP256K1_BUILD',
+    'USE_NUM_NONE',
+    'USE_FIELD_INV_BUILTIN',
+    'USE_SCALAR_INV_BUILTIN',
+    'USE_FIELD_10X26',
+    'USE_SCALAR_8X32',
+    'USE_ECMULT_STATIC_PRECOMPUTATION',
+    'USE_EXTERNAL_DEFAULT_CALLBACKS',
+    ('ECMULT_WINDOW_SIZE', '8'),
+    'ENABLE_MODULE_GENERATOR',
+    'ENABLE_MODULE_RANGEPROOF',
+    'ENABLE_MODULE_RECOVERY',
+    'ENABLE_MODULE_ECDH',
+]
+SOURCE_MOD_SECP256K1_ZKP += [
+    'vendor/secp256k1-zkp/src/secp256k1.c',
+]
+
 # modtrezorio
 SOURCE_MOD += [
     'embed/extmod/modtrezorio/modtrezorio.c',
@@ -110,7 +139,6 @@ CPPDEFINES_MOD += [
     'TREZOR_FONT_NORMAL_ENABLE',
     'TREZOR_FONT_MONO_ENABLE',
     'TREZOR_FONT_MONO_BOLD_ENABLE',
-    ('QR_MAX_VERSION', '0'),
 ]
 SOURCE_MOD += [
     'embed/extmod/modtrezorui/display.c',
@@ -121,7 +149,7 @@ SOURCE_MOD += [
     'embed/extmod/modtrezorui/font_robotomono_bold_20.c',
     'embed/extmod/modtrezorui/font_robotomono_regular_20.c',
     'embed/extmod/modtrezorui/modtrezorui.c',
-    'embed/extmod/modtrezorui/trezor-qrenc/qr_encode.c',
+    'embed/extmod/modtrezorui/qr-code-generator/qrcodegen.c',
 ]
 if ARGUMENTS.get('TREZOR_EMULATOR_NOUI', 0):
     CPPDEFINES_MOD += ['TREZOR_EMULATOR_NOUI']
@@ -145,6 +173,7 @@ SOURCE_MICROPYTHON = [
     'vendor/micropython/extmod/modutimeq.c',
     'vendor/micropython/extmod/utime_mphal.c',
     'vendor/micropython/lib/mp-readline/readline.c',
+    'vendor/micropython/ports/unix/modos.c',
     'vendor/micropython/py/argcheck.c',
     'vendor/micropython/py/asmarm.c',
     'vendor/micropython/py/asmbase.c',
@@ -365,15 +394,38 @@ qstr_generated = env.GenerateQstrDefs(
 env.Ignore(qstr_collected, qstr_generated)
 
 #
+# static secp256-zkp ecmult context
+#
+
+host_env = Environment(ENV=os.environ)
+host_env.Replace(
+    CC=os.getenv('CC_FOR_BUILD') or 'gcc',
+    COPT='-O2',
+    CPPPATH='vendor/secp256k1-zkp',
+)
+gen_context = host_env.Program(
+    target='vendor/secp256k1-zkp/gen_context',
+    source='vendor/secp256k1-zkp/src/gen_context.c',
+)
+
+secp256k1_zkp_ecmult_static_context = host_env.Command(
+    target='vendor/secp256k1-zkp/src/ecmult_static_context.h',
+    source='vendor/secp256k1-zkp/gen_context',
+    action='cd ${SOURCE.dir}; ./gen_context',
+)
+
+#
 # Program objects
 #
 
 obj_program = []
 obj_program += env.Object(source=SOURCE_MOD)
+obj_program += env.Object(source=SOURCE_MOD_SECP256K1_ZKP, CCFLAGS='$CCFLAGS -Wno-unused-function')
 obj_program += env.Object(source=SOURCE_MICROPYTHON)
 obj_program += env.Object(source=SOURCE_UNIX)
 
 env.Depends(obj_program, qstr_generated)
+env.Depends(obj_program, secp256k1_zkp_ecmult_static_context)
 
 program = env.Command(
     target='micropython',

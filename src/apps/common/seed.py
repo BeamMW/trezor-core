@@ -1,7 +1,7 @@
 from trezor import ui, wire
-from trezor.crypto import bip32, bip39
+from trezor.crypto import bip32
 
-from apps.common import cache, storage
+from apps.common import HARDENED, cache, mnemonic, storage
 from apps.common.request_passphrase import protect_by_passphrase
 
 allow = list
@@ -25,6 +25,14 @@ class Keychain:
         del self.roots
         del self.seed
 
+    def validate_path(self, checked_path: list, checked_curve: str):
+        for curve, *path in self.namespaces:
+            if path == checked_path[: len(path)] and curve == checked_curve:
+                if "ed25519" in curve and not _path_hardened(checked_path):
+                    break
+                return
+        raise wire.DataError("Forbidden key path")
+
     def derive(self, node_path: list, curve_name: str = "secp256k1") -> bip32.HDNode:
         # find the root node index
         root_index = 0
@@ -44,6 +52,7 @@ class Keychain:
             root.derive_path(path)
             self.roots[root_index] = root
 
+        # TODO check for ed25519?
         # derive child node from the root
         node = root.clone()
         node.derive_path(suffix)
@@ -60,28 +69,23 @@ async def get_keychain(ctx: wire.Context, namespaces: list) -> Keychain:
     return keychain
 
 
-@ui.layout
+def _path_hardened(path: list) -> bool:
+    # TODO: move to paths.py after #538 is fixed
+    for i in path:
+        if not (i & HARDENED):
+            return False
+    return True
+
+
+@ui.layout_no_slide
 async def _compute_seed(ctx: wire.Context) -> bytes:
     passphrase = cache.get_passphrase()
     if passphrase is None:
         passphrase = await protect_by_passphrase(ctx)
         cache.set_passphrase(passphrase)
-    _start_bip39_progress()
-    seed = bip39.seed(storage.get_mnemonic(), passphrase, _render_bip39_progress)
+    seed = mnemonic.get_seed(passphrase)
     cache.set_seed(seed)
     return seed
-
-
-def _start_bip39_progress():
-    ui.display.clear()
-    ui.header("Please wait")
-    ui.display.refresh()
-
-
-def _render_bip39_progress(progress: int, total: int):
-    p = int(1000 * progress / total)
-    ui.display.loader(p, 18, ui.WHITE, ui.BG)
-    ui.display.refresh()
 
 
 def derive_node_without_passphrase(
@@ -89,7 +93,7 @@ def derive_node_without_passphrase(
 ) -> bip32.HDNode:
     if not storage.is_initialized():
         raise Exception("Device is not initialized")
-    seed = bip39.seed(storage.get_mnemonic(), "")
+    seed = mnemonic.get_seed(progress_bar=False)
     node = bip32.from_seed(seed, curve_name)
     node.derive_path(path)
     return node

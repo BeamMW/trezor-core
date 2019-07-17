@@ -432,10 +432,9 @@
         },
         "py-cryptonight": {
             "hashes": [
-                "sha256:7dae42a96ad4d0e61ca67ca04f71d4faad62653df8d8dd58eb04c0bee335bfbe",
-                "sha256:a56dfb87dc937676ff0716a1a43d4fdd7dd6cbdbab6bb531ba82bec2ed0daa33"
+                "sha256:18ef26c56d7b677c527932af37a9bc98f39e4a56a87a003ef9a3a994d8bfe080"
             ],
-            "version": "==0.2.4"
+            "version": "==0.1.8"
         },
         "py-trezor-crypto-ph4": {
             "hashes": [
@@ -443,6 +442,7 @@
                 "sha256:c523afd73949ac083bb7c5ef67416f0a971edc1921f4046a8cd40f87e43133ff"
             ],
             "index": "pypi",
+            "markers": "extra == 'tcry'",
             "version": "==0.1.1"
         },
         "pyblake2": {

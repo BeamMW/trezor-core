@@ -12,7 +12,7 @@ iface_wire = io.WebUSB(
 )
 
 # as the iface_vcp inteface needs 3 endpoints, we cannot use it simultaneously
-# with the iface_u2f inteface.
+# with the iface_webauthn inteface.
 if __debug__:
     # interface used for debug messages with trezor wire protocol
     iface_debug = io.WebUSB(
@@ -29,8 +29,8 @@ if __debug__:
         ep_cmd=0x84,
     )
 else:
-    # interface used for FIDO U2F HID transport
-    iface_u2f = io.HID(
+    # interface used for FIDO/U2F and FIDO2/WebAuthn HID transport
+    iface_webauthn = io.HID(
         iface_num=1,
         ep_in=0x82,
         ep_out=0x02,
@@ -69,4 +69,4 @@ if __debug__:
     bus.add(iface_debug)
     bus.add(iface_vcp)
 else:
-    bus.add(iface_u2f)
+    bus.add(iface_webauthn)

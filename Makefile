@@ -74,16 +74,23 @@ pylint: ## run pylint on application sources and tests
 ## style commands:
 
 style_check: ## run code style check on application sources and tests
+	flake8 --version
+	isort --version | grep "VERSION"
+	black --version
 	flake8 $(shell find src -name *.py)
 	isort --check-only $(shell find src -name *.py ! -path 'src/trezor/messages/*')
 	black --check $(shell find src -name *.py ! -path 'src/trezor/messages/*')
 
-style:
+style: ## apply code style on application sources and tests
 	isort $(shell find src -name *.py ! -path 'src/trezor/messages/*')
 	black $(shell find src -name *.py ! -path 'src/trezor/messages/*')
 
-cstyle: ## run code style check on low-level C code
-	./tools/clang-format-check $(shell find embed -type f -name *.[ch])
+cstyle_check: ## run code style check on low-level C code
+	./tools/clang-format-check embed/*/*.{c,h} embed/extmod/modtrezor*/*.{c,h}
+
+
+cstyle: ## apply code style on low-level C code
+	clang-format -i embed/*/*.{c,h} embed/extmod/modtrezor*/*.{c,h}
 
 ## code generation:
 
@@ -174,6 +181,12 @@ flash_combine: $(PRODTEST_BUILD_DIR)/combined.bin ## flash combined using OpenOC
 
 flash_erase: ## erase all sectors in flash bank 0
 	$(OPENOCD) -c "init; reset halt; flash info 0; flash erase_sector 0 0 last; flash erase_check 0; exit"
+
+flash_read_storage: ## read storage sectors from flash
+	$(OPENOCD) -c "init; flash read_bank 0 storage1.data 0x10000 65536; flash read_bank 0 storage2.data 0x110000 65536; exit"
+
+flash_erase_storage: ## erase storage sectors from flash
+	$(OPENOCD) -c "init; flash erase_sector 0 4 4; flash erase_sector 0 16 16; exit"
 
 ## openocd debug commands:
 

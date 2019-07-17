@@ -25,7 +25,7 @@ import apps.beam
 if __debug__:
     import apps.debug
 else:
-    import apps.fido_u2f
+    import apps.webauthn
 
 # boot applications
 apps.homescreen.boot()
@@ -43,7 +43,7 @@ apps.beam.boot()
 if __debug__:
     apps.debug.boot()
 else:
-    apps.fido_u2f.boot(usb.iface_u2f)
+    apps.webauthn.boot(usb.iface_webauthn)
 
 # initialize the wire codec and start the USB
 wire.setup(usb.iface_wire)

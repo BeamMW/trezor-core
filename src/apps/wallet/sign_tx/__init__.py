@@ -1,4 +1,4 @@
-from trezor import ui, wire
+from trezor import wire
 from trezor.messages.MessageType import TxAck
 from trezor.messages.RequestType import TXFINISHED
 from trezor.messages.TxRequest import TxRequest
@@ -16,7 +16,6 @@ from apps.wallet.sign_tx import (
 )
 
 
-@ui.layout
 async def sign_tx(ctx, msg, keychain):
     signer = signing.sign_tx(msg, keychain)
 
@@ -46,6 +45,9 @@ async def sign_tx(ctx, msg, keychain):
             progress.report_init()
         elif isinstance(req, helpers.UiConfirmFeeOverThreshold):
             res = await layout.confirm_feeoverthreshold(ctx, req.fee, req.coin)
+            progress.report_init()
+        elif isinstance(req, helpers.UiConfirmNonDefaultLocktime):
+            res = await layout.confirm_nondefault_locktime(ctx, req.lock_time)
             progress.report_init()
         elif isinstance(req, helpers.UiConfirmForeignAddress):
             res = await paths.show_path_warning(ctx, req.address_n)

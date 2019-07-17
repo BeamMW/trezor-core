@@ -8,6 +8,8 @@ from trezor.utils import chunks
 from apps.common.confirm import require_confirm, require_hold_to_confirm
 from apps.monero.layout import common
 
+DUMMY_PAYMENT_ID = b"\x00" * 8
+
 
 async def require_confirm_watchkey(ctx):
     content = Text("Confirm export", ui.ICON_SEND, icon_color=ui.GREEN)
@@ -18,6 +20,25 @@ async def require_confirm_watchkey(ctx):
 async def require_confirm_keyimage_sync(ctx):
     content = Text("Confirm ki sync", ui.ICON_SEND, icon_color=ui.GREEN)
     content.normal("Do you really want to", "sync key images?")
+    return await require_confirm(ctx, content, ButtonRequestType.SignTx)
+
+
+async def require_confirm_live_refresh(ctx):
+    content = Text("Confirm refresh", ui.ICON_SEND, icon_color=ui.GREEN)
+    content.normal("Do you really want to", "start refresh?")
+    return await require_confirm(ctx, content, ButtonRequestType.SignTx)
+
+
+async def require_confirm_tx_key(ctx, export_key=False):
+    content = Text("Confirm export", ui.ICON_SEND, icon_color=ui.GREEN)
+    txt = ["Do you really want to"]
+    if export_key:
+        txt.append("export tx_key?")
+    else:
+        txt.append("export tx_der")
+        txt.append("for tx_proof?")
+
+    content.normal(*txt)
     return await require_confirm(ctx, content, ButtonRequestType.SignTx)
 
 
@@ -45,7 +66,7 @@ async def require_confirm_transaction(ctx, tsx_data, network_type):
             cur_payment = None
         await _require_confirm_output(ctx, dst, network_type, cur_payment)
 
-    if has_payment and not has_integrated:
+    if has_payment and not has_integrated and tsx_data.payment_id != DUMMY_PAYMENT_ID:
         await _require_confirm_payment_id(ctx, tsx_data.payment_id)
 
     await _require_confirm_fee(ctx, tsx_data.fee)
@@ -131,4 +152,13 @@ async def keyimage_sync_step(ctx, current, total_num):
         return
     text = Text("Syncing", ui.ICON_SEND, icon_color=ui.BLUE)
     text.normal("%d/%d" % (current + 1, total_num))
+    text.render()
+
+
+@ui.layout
+async def live_refresh_step(ctx, current):
+    if current is None:
+        return
+    text = Text("Refreshing", ui.ICON_SEND, icon_color=ui.BLUE)
+    text.normal("%d" % current)
     text.render()

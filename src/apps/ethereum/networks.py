@@ -143,6 +143,13 @@ NETWORKS = [
         rskip60=False,
     ),
     NetworkInfo(
+        chain_id=237,
+        slip44=237,
+        shortcut="DXN",
+        name="DEXON",
+        rskip60=False,
+    ),
+    NetworkInfo(
         chain_id=820,
         slip44=820,
         shortcut="CLO",
@@ -189,6 +196,20 @@ NETWORKS = [
         slip44=200625,
         shortcut="AKA",
         name="Akroma",
+        rskip60=False,
+    ),
+    NetworkInfo(
+        chain_id=246529,
+        slip44=246529,
+        shortcut="ATS",
+        name="ARTIS sigma1",
+        rskip60=False,
+    ),
+    NetworkInfo(
+        chain_id=246785,
+        slip44=1,
+        shortcut="tATS",
+        name="ARTIS tau1",
         rskip60=False,
     ),
     NetworkInfo(

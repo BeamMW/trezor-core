@@ -66,9 +66,11 @@ async def check_tx_fee(tx: SignTx, keychain: seed.Keychain):
         tx_ser = TxRequestSerializedType()
     elif tx.overwintered:
         if tx.version == 3:
-            hash143 = zcash.Zip143()  # ZIP-0143 transaction hashing
+            branch_id = tx.branch_id or 0x5BA81B19  # Overwinter
+            hash143 = zcash.Zip143(branch_id)  # ZIP-0143 transaction hashing
         elif tx.version == 4:
-            hash143 = zcash.Zip243()  # ZIP-0243 transaction hashing
+            branch_id = tx.branch_id or 0x76B809BB  # Sapling
+            hash143 = zcash.Zip243(branch_id)  # ZIP-0243 transaction hashing
         else:
             raise SigningError(
                 FailureType.DataError,
@@ -197,6 +199,10 @@ async def check_tx_fee(tx: SignTx, keychain: seed.Keychain):
     if fee > (coin.maxfee_kb / 1000) * (weight.get_total() / 4):
         if not await helpers.confirm_feeoverthreshold(fee, coin):
             raise SigningError(FailureType.ActionCancelled, "Signing cancelled")
+
+    if tx.lock_time > 0:
+        if not await helpers.confirm_nondefault_locktime(tx.lock_time):
+            raise SigningError(FailureType.ActionCancelled, "Locktime cancelled")
 
     if not await helpers.confirm_total(total_in - change_out, fee, coin):
         raise SigningError(FailureType.ActionCancelled, "Total cancelled")
