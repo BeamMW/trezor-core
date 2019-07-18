@@ -4,6 +4,12 @@ import protobuf as p
 
 from .BeamECCPoint import BeamECCPoint
 
+if __debug__:
+    try:
+        from typing import Dict, List, Optional
+    except ImportError:
+        Dict, List, Optional = None, None, None  # type: ignore
+
 
 class BeamKernelParameters(p.MessageType):
 
@@ -28,7 +34,7 @@ class BeamKernelParameters(p.MessageType):
         self.multisig_excess = multisig_excess
 
     @classmethod
-    def get_fields(cls):
+    def get_fields(cls) -> Dict:
         return {
             1: ('fee', p.UVarintType, 0),
             2: ('commitment', BeamECCPoint, 0),

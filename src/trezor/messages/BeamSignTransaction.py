@@ -7,13 +7,13 @@ from .BeamKeyIDV import BeamKeyIDV
 
 if __debug__:
     try:
-        from typing import List
+        from typing import Dict, List, Optional
     except ImportError:
-        List = None  # type: ignore
+        Dict, List, Optional = None, None, None  # type: ignore
 
 
 class BeamSignTransaction(p.MessageType):
-    MESSAGE_WIRE_TYPE = 714
+    MESSAGE_WIRE_TYPE = 814
 
     def __init__(
         self,
@@ -30,7 +30,7 @@ class BeamSignTransaction(p.MessageType):
         self.kernel_params = kernel_params
 
     @classmethod
-    def get_fields(cls):
+    def get_fields(cls) -> Dict:
         return {
             1: ('inputs', BeamKeyIDV, p.FLAG_REPEATED),
             2: ('offset_sk', p.BytesType, 0),

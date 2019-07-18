@@ -2,9 +2,15 @@
 # fmt: off
 import protobuf as p
 
+if __debug__:
+    try:
+        from typing import Dict, List, Optional
+    except ImportError:
+        Dict, List, Optional = None, None, None  # type: ignore
+
 
 class BeamOwnerKey(p.MessageType):
-    MESSAGE_WIRE_TYPE = 708
+    MESSAGE_WIRE_TYPE = 808
 
     def __init__(
         self,
@@ -13,7 +19,7 @@ class BeamOwnerKey(p.MessageType):
         self.key = key
 
     @classmethod
-    def get_fields(cls):
+    def get_fields(cls) -> Dict:
         return {
             1: ('key', p.BytesType, 0),
         }

@@ -5,9 +5,15 @@ import protobuf as p
 from .BeamECCPoint import BeamECCPoint
 from .BeamSignature import BeamSignature
 
+if __debug__:
+    try:
+        from typing import Dict, List, Optional
+    except ImportError:
+        Dict, List, Optional = None, None, None  # type: ignore
+
 
 class BeamVerifyMessage(p.MessageType):
-    MESSAGE_WIRE_TYPE = 704
+    MESSAGE_WIRE_TYPE = 804
 
     def __init__(
         self,
@@ -20,7 +26,7 @@ class BeamVerifyMessage(p.MessageType):
         self.message = message
 
     @classmethod
-    def get_fields(cls):
+    def get_fields(cls) -> Dict:
         return {
             1: ('signature', BeamSignature, 0),
             2: ('public_key', BeamECCPoint, 0),

@@ -2,9 +2,15 @@
 # fmt: off
 import protobuf as p
 
+if __debug__:
+    try:
+        from typing import Dict, List, Optional
+    except ImportError:
+        Dict, List, Optional = None, None, None  # type: ignore
+
 
 class BeamECCPoint(p.MessageType):
-    MESSAGE_WIRE_TYPE = 711
+    MESSAGE_WIRE_TYPE = 811
 
     def __init__(
         self,
@@ -15,7 +21,7 @@ class BeamECCPoint(p.MessageType):
         self.y = y
 
     @classmethod
-    def get_fields(cls):
+    def get_fields(cls) -> Dict:
         return {
             1: ('x', p.BytesType, 0),
             2: ('y', p.BoolType, 0),

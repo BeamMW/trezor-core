@@ -2,9 +2,15 @@
 # fmt: off
 import protobuf as p
 
+if __debug__:
+    try:
+        from typing import Dict, List, Optional
+    except ImportError:
+        Dict, List, Optional = None, None, None  # type: ignore
+
 
 class BeamGetPublicKey(p.MessageType):
-    MESSAGE_WIRE_TYPE = 705
+    MESSAGE_WIRE_TYPE = 805
 
     def __init__(
         self,
@@ -17,7 +23,7 @@ class BeamGetPublicKey(p.MessageType):
         self.show_display = show_display
 
     @classmethod
-    def get_fields(cls):
+    def get_fields(cls) -> Dict:
         return {
             1: ('kid_idx', p.UVarintType, 0),
             2: ('kid_sub_idx', p.UVarintType, 0),

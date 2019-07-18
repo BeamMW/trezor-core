@@ -4,9 +4,15 @@ import protobuf as p
 
 from .BeamKeyIDV import BeamKeyIDV
 
+if __debug__:
+    try:
+        from typing import Dict, List, Optional
+    except ImportError:
+        Dict, List, Optional = None, None, None  # type: ignore
+
 
 class BeamGenerateRangeproof(p.MessageType):
-    MESSAGE_WIRE_TYPE = 712
+    MESSAGE_WIRE_TYPE = 812
 
     def __init__(
         self,
@@ -17,7 +23,7 @@ class BeamGenerateRangeproof(p.MessageType):
         self.is_public = is_public
 
     @classmethod
-    def get_fields(cls):
+    def get_fields(cls) -> Dict:
         return {
             1: ('kidv', BeamKeyIDV, 0),
             2: ('is_public', p.BoolType, 0),
