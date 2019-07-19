@@ -20,7 +20,7 @@ def bin_to_str(binary_data):
 def get_beam_kdf(mnemonic=None):
     if mnemonic is None:
         # Get kdf
-        mnemonic = storage.get_mnemonic()
+        mnemonic = storage.get_mnemonic_secret()
     seed = beam.from_mnemonic_beam(mnemonic)
     seed_size = 32
     secret_key = bytearray(32)

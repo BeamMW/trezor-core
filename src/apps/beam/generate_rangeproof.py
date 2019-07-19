@@ -11,7 +11,7 @@ async def generate_rangeproof(ctx, msg):
     asset_id = bytearray(0)
     rangeproof_data = bytearray(688)
 
-    mnemonic = storage.get_mnemonic()
+    mnemonic = storage.get_mnemonic_secret()
     seed = beam.from_mnemonic_beam(mnemonic)
 
     beam.generate_rp_from_key_idv(msg.kidv.idx, msg.kidv.type, msg.kidv.sub_idx, msg.kidv.value,

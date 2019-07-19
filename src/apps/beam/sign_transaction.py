@@ -10,7 +10,7 @@ from apps.beam.nonce import consume_nonce
 
 async def sign_transaction(ctx, msg):
     tm = beam.TransactionMaker()
-    mnemonic = storage.get_mnemonic()
+    mnemonic = storage.get_mnemonic_secret()
 
     sk_total, value_transferred = sign_tx_part_1(
         tm,
