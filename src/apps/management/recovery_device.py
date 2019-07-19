@@ -17,7 +17,7 @@ from trezor.utils import format_ordinal
 from apps.common import storage
 from apps.common.confirm import require_confirm
 from apps.management.change_pin import request_pin_confirm
-from apps.beam.nonce import create_master_nonce
+from apps.beam.nonce import create_master_nonce as create_beam_master_nonce
 
 
 async def recovery_device(ctx, msg):
@@ -72,7 +72,7 @@ async def recovery_device(ctx, msg):
     storage.load_mnemonic(mnemonic=mnemonic, needs_backup=False, no_backup=False)
 
     beam_nonce_seed = random.bytes(32)
-    create_master_nonce(beam_nonce_seed)
+    create_beam_master_nonce(beam_nonce_seed)
 
     return Success(message="Device recovered")
 
