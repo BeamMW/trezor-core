@@ -20,13 +20,13 @@ async def require_validate_sign_message(ctx, message):
     #await beam_confirm_message(ctx, 'Validate BEAM signature', message)
     return True
 
-async def beam_confirm_message(ctx, info_message, message, use_split_message=True):
+async def beam_confirm_message(ctx, info_message, message, use_split_message=True, code=None):
     if use_split_message:
         message = split_message(message)
 
     text = Text(info_message, new_lines=False)
     text.normal(*message)
-    await require_confirm(ctx, text)
+    await require_confirm(ctx, text, code)
 
 async def beam_confirm_tx(ctx, spending, fee):
     coin = coins.by_name('BEAM')
