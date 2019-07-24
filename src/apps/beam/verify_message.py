@@ -15,11 +15,11 @@ async def verify_message(ctx, msg):
     message = message_digest(msg.message)
     if len(msg.signature.nonce_pub.x) != 32 \
        or len(msg.signature.sign_k) != 32:
-        raise wire.DataError("Invalid signature")
+        raise wire.DataError("Invalid size of signature params")
 
     is_valid = is_valid_beam_message(msg.signature, msg.public_key, message)
     if not is_valid:
-        raise wire.DataError("Invalid signature")
+        raise wire.InvalidSignature("Invalid signature")
 
     # Display message itself
     await require_validate_sign_message(ctx, str(msg.message, 'utf-8'))
